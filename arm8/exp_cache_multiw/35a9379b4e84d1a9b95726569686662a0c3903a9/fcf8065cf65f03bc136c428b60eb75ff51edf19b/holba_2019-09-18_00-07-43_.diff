@@ -1,0 +1,129 @@
+diff --git a/src/tools/scamv/bir_embexp_driverLib.sig b/src/tools/scamv/bir_embexp_driverLib.sig
+index f22f259..fce00d5 100644
+--- a/src/tools/scamv/bir_embexp_driverLib.sig
++++ b/src/tools/scamv/bir_embexp_driverLib.sig
+@@ -1,6 +1,6 @@
+ signature bir_embexp_driverLib = sig
+ 
+-  val bir_embexp_create : (string * string) -> string -> (((string * num) list) * ((string * num) list)) -> string
++  val bir_embexp_create : (string * string) -> string -> string -> (((string * num) list) * ((string * num) list)) -> string
+   val bir_embexp_run : string -> bool -> (bool option * string)
+ 
+ end
+diff --git a/src/tools/scamv/bir_embexp_driverLib.sml b/src/tools/scamv/bir_embexp_driverLib.sml
+index 412fa8d..cb3c90a 100644
+--- a/src/tools/scamv/bir_embexp_driverLib.sml
++++ b/src/tools/scamv/bir_embexp_driverLib.sml
+@@ -47,6 +47,30 @@ struct
+           end
+       | SOME p => p;
+ 
++
++(* datestring helper *)
++  fun get_datestring () =
++    let
++      val date = Date.fromTimeLocal (Time.now ());
++      val datestr = Date.fmt "%Y-%m-%d_%H-%M-%S_" date;
++    in
++      datestr
++    end;
++
++
++(* embexp run identification *)
++  val embexp_run_id_ref = ref (NONE:string option);
++  fun embexp_run_id () =
++    case !embexp_run_id_ref of
++        NONE =>
++          let
++            val datestr = get_datestring();
++            val _ = embexp_run_id_ref := SOME datestr;
++          in
++            datestr
++          end
++      | SOME p => p;
++
+ (* directory creation helper *)
+   fun makedir makepath path =
+     let
+@@ -91,14 +115,6 @@ struct
+       str = s
+     end;
+ 
+-  fun get_datestring () =
+-    let
+-      val date = Date.fromTimeLocal (Time.now ());
+-      val datestr = Date.fmt "%Y-%m-%d_%H-%M-%S_" date;
+-    in
+-      datestr
+-    end;
+-
+   val tempdir = "./tempdir";
+   fun get_exec_output exec_cmd =
+     let
+@@ -183,7 +199,7 @@ struct
+     end;
+ 
+ (* interface functions *)
+-  fun bir_embexp_create exp_id exp_code_asm (s1,s2) =
++  fun bir_embexp_create exp_id exp_code_asm obs_model_name (s1,s2) =
+     let
+       val exp_basedir = get_experiment_basedir exp_id;
+ 
+@@ -193,7 +209,7 @@ struct
+       (* this directory possibly already exists *)
+       val _ = makedir true exp_codepath;
+       (* but the code should not differ if it exists already *)
+-      val code_eq = write_to_file_or_compare (exp_codepath ^ "/_code.asm") exp_code_asm;
++      val code_eq = write_to_file_or_compare (exp_codepath ^ "/code.asm") exp_code_asm;
+       val _ = if code_eq then () else
+                 raise ERR "bir_embexp_create" ("there has been a hash clash with: " ^ exp_codepath);
+ 
+@@ -210,11 +226,12 @@ struct
+                 raise ERR "bir_embexp_create" ("there has been a hash clash with: " ^ exp_datapath);
+ 
+       (* write out git commit and git diff of current directory. so this script needs to be executed from within the holbarepo! *)
+-      val datestr = get_datestring();
++      val embexp_run_id = embexp_run_id();
+       val holba_diff = get_exec_output "git diff";
+       val holba_commit = get_exec_output "git rev-parse HEAD";
+-      val holba_diff_file = exp_datapath ^ "/holba_" ^ datestr ^ ".diff";
+-      val holba_commit_file = exp_datapath ^ "/holba_" ^ datestr ^ ".commit";
++      val holba_diff_file = exp_datapath ^ "/holba_" ^ embexp_run_id ^ ".diff";
++      val holba_commit_file = exp_datapath ^ "/holba_" ^ embexp_run_id ^ ".commit";
++      val holba_obsmodel_file = exp_datapath ^ "/holba_" ^ embexp_run_id ^ ".obsmodel";
+ 
+       val holba_diff_eq = write_to_file_or_compare holba_diff_file holba_diff;
+       val _ = if holba_diff_eq then () else
+@@ -223,6 +240,10 @@ struct
+       val holba_commit_eq = write_to_file_or_compare holba_commit_file holba_commit;
+       val _ = if holba_commit_eq then () else
+                 raise ERR "bir_embexp_create" ("there has been a clash with: " ^  holba_commit_file);
++
++      val holba_obsmodel_eq = write_to_file_or_compare holba_obsmodel_file obs_model_name;
++      val _ = if holba_obsmodel_eq then () else
++                raise ERR "bir_embexp_create" ("there has been a clash with: " ^ holba_obsmodel_file);
+     in
+       exp_datapath
+     end;
+diff --git a/src/tools/scamv/bir_scamv_driverLib.sml b/src/tools/scamv/bir_scamv_driverLib.sml
+index 71eb2f2..bb428f8 100644
+--- a/src/tools/scamv/bir_scamv_driverLib.sml
++++ b/src/tools/scamv/bir_scamv_driverLib.sml
+@@ -271,7 +271,7 @@ fun next_test select_path =
+         val (s2,s1) = List.partition (isPrimedRun o fst) sml_model;
+         val asm_file_contents = !current_asm;
+ 
+-        val exp_path = bir_embexp_create ("arm8", "exp_cache_multiw") asm_file_contents (s1, s2);
++        val exp_path = bir_embexp_create ("arm8", "exp_cache_multiw") asm_file_contents "obs_model_name_here" (s1, s2);
+         val test_result = bir_embexp_run exp_path false;
+ 
+         val _ = case test_result of
+@@ -331,7 +331,7 @@ fun scamv_test_gen_run (asm_code, sections) =
+         fun isPrimedRun s = String.isSuffix "_" s;
+         val (s2,s1) = List.partition (isPrimedRun o fst) sml_model;
+ 
+-        val exp_path = bir_embexp_create ("arm8", "exp_cache_multiw") asm_code (s1, s2);
++        val exp_path = bir_embexp_create ("arm8", "exp_cache_multiw") asm_code "obs_model_name_here" (s1, s2);
+         val test_result = bir_embexp_run exp_path false;
+ 
+         val _ = case test_result of
