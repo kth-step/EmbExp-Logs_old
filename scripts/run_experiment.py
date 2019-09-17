@@ -102,7 +102,7 @@ def evaluate_uart_single_test(filename):
 # read input files
 # ======================================
 logging.info(f"reading input files")
-with open(get_exp_path("../_code.asm"), "r") as f:
+with open(get_exp_path("../code.asm"), "r") as f:
 	code_asm = f.read()
 with open(get_exp_path("input1.json"), "r") as f:
 	input1 = json.load(f)
