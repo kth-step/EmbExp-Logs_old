@@ -166,4 +166,5 @@ finally:
 	call_cmd(["git", "clean", "-fdX", "."], "couldn't clean progplatform")
 	assert git_check_clean()
 
+print(f"result = {result}")
 
