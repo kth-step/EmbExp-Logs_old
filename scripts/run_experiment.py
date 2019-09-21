@@ -10,7 +10,7 @@ import subprocess
 # parse arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("embexp_path", help="path to embexp repositories")
-parser.add_argument("exp_path", help="path to experiment")
+parser.add_argument("exp_id", help="id of experiment")
 
 parser.add_argument("-rst", "--with_reset", help="test with reset in between", action="store_true")
 
@@ -24,7 +24,10 @@ else:
 	logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
 
 embexp_path = os.path.abspath(args.embexp_path)
-exp_path = os.path.abspath(args.exp_path)
+exp_id = args.exp_id
+assert len(exp_id.split('/')) == 4
+
+exp_path = os.path.abspath(os.path.join(os.path.join(os.path.dirname(__file__), ".."), exp_id))
 
 if args.with_reset:
 	raise Exception("cannot handle experiments with reset currently")
@@ -35,7 +38,7 @@ def get_exp_path(path):
 	return exp_path + "/" + path
 
 def get_exp_branchname():
-	return os.path.basename(os.path.abspath(get_exp_path("../..")))
+	return os.path.basename(os.path.abspath(get_exp_path("..")))
 
 def call_cmd_get_output(cmdl, error_msg):
 	proc = subprocess.Popen(cmdl,stdout=subprocess.PIPE)
@@ -102,7 +105,9 @@ def evaluate_uart_single_test(filename):
 # read input files
 # ======================================
 logging.info(f"reading input files")
-with open(get_exp_path("../code.asm"), "r") as f:
+with open(get_exp_path(f"code.hash"), "r") as f:
+	prog_id = f.read().strip()
+with open(get_exp_path(f"../../../progs/{prog_id}/code.asm"), "r") as f:
 	code_asm = f.read()
 with open(get_exp_path("input1.json"), "r") as f:
 	input1 = json.load(f)
