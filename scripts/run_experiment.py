@@ -75,9 +75,7 @@ def gen_input_code(regmap):
 		assert val < 2**64
 		assert val >= 0
 		val_str = val.to_bytes(8, byteorder='big').hex()
-		for i in range(4):
-			hexstr = val_str[(4-i-1)*2*2:(4-i)*2*2]
-			asm += f"\tmovk {reg}, #0x{hexstr}, lsl #{16 * i}\n"
+		asm += f"\tldr {reg}, =0x{val_str}\n"
 		asm += "\n"
 	return asm
 
