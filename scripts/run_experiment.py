@@ -142,7 +142,7 @@ try:
 	# run the experiment
 	# ======================================
 	logging.info(f"running experiment")
-	call_cmd(["make", "runlog"], "experiment didn't run successful")
+	call_cmd(["make", "runlog_try"], "experiment didn't run successful")
 
 	# save the outputs and test metadata
 	# ======================================
