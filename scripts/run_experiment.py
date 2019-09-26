@@ -64,8 +64,9 @@ def writefile_or_compare(filename, content, errmsg):
 	with open(filename, "rb") as f:
 		file_content = f.read()
 		if file_content != content:
-			print(file_content)
-			print(content)
+			sys.stderr.write(file_content)
+			sys.stderr.write(content)
+			sys.stderr.flush()
 			raise Exception(f"file {filename} has unexpected content: {errmsg}")
 
 def gen_input_code(regmap):
