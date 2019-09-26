@@ -64,8 +64,8 @@ def writefile_or_compare(filename, content, errmsg):
 	with open(filename, "rb") as f:
 		file_content = f.read()
 		if file_content != content:
-			sys.stderr.write(file_content)
-			sys.stderr.write(content)
+			sys.stderr.write(file_content.decode("utf-8"))
+			sys.stderr.write(content.decode("utf-8"))
 			sys.stderr.flush()
 			raise Exception(f"file {filename} has unexpected content: {errmsg}")
 
