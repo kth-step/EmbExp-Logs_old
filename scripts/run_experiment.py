@@ -9,13 +9,17 @@ import subprocess
 
 # parse arguments
 parser = argparse.ArgumentParser()
-parser.add_argument("embexp_path", help="path to embexp repositories")
-parser.add_argument("exp_id", help="id of experiment")
+parser.add_argument("exp_id", help="id of experiment: arm8/exps2/exp_cache_multiw/8127e2f5954aee7f63a34088d8b0547ab91dac14")
 
+parser.add_argument("-ep", "--embexp_path", help="path to embexp repositories")
 parser.add_argument("-rst", "--with_reset", help="test with reset in between", action="store_true")
 
 parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
 args = parser.parse_args()
+
+embexp_path = args.embexp_path
+if embexp_path == None:
+	embexp_path = os.path.expandvars("${HOLBA_EMBEXP_DIR}")
 
 # set log level
 if args.verbose:
@@ -23,7 +27,7 @@ if args.verbose:
 else:
 	logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
 
-embexp_path = os.path.abspath(args.embexp_path)
+embexp_path = os.path.abspath(embexp_path)
 exp_id = args.exp_id
 assert len(exp_id.split('/')) == 4
 
@@ -83,22 +87,29 @@ def gen_input_code(regmap):
 def evaluate_uart_single_test(filename):
 	with open(filename, "r") as f:
 		lines = f.readlines()
-	try:
-		init_idx = lines.index("Init complete.\n")
-	except ValueError:
-		raise Exception("unexpected output: init has never been completed")
-	try:
-		complete_idx = lines.index("Experiment complete.\n")
-	except ValueError:
-		raise Exception("unexpected output: experiment is never completed")
-	assert init_idx + 2 == complete_idx
-	result_line = lines[init_idx + 1]
-	if result_line == "RESULT: EQUAL\n":
+
+	initcompleteline = "Init complete.\n"
+	resultline_true  = "RESULT: EQUAL\n"
+	resultline_false = "RESULT: UNEQUAL\n"
+	expcompleteline  = "Experiment complete.\n"
+
+	if len(lines) < 3:
+		raise Exception("unexpected output: not enough lines")
+	initline = lines[0]
+	resline  = lines[1]
+	endline  = lines[2]
+
+	if initline != initcompleteline:
+		raise Exception(f"unexpected output: init has never been completed {initline}")
+	if endline != expcompleteline:
+		raise Exception(f"unexpected output: experiment is never completed {endline}")
+
+	if resline == resultline_true:
 		return True
-	elif result_line == "RESULT: UNEQUAL\n":
+	elif resline == resultline_false:
 		return False
 	else:
-		raise Exception(f"the result line is not as expected: {result_line}")
+		raise Exception(f"the result line is not as expected: {resline}")
 
 
 # read input files
@@ -152,12 +163,14 @@ try:
 	exp_dir_results = get_exp_path(progplat_hash.decode('ascii').strip())
 	call_cmd(["mkdir", "-p", exp_dir_results], "could not create directory")
 	# notice, with reset the output format is: output1/2_uart.log and result_rst.json
-	# now copy the uart output
+	# now take the uart output
 	progplat_uartfile = exp_dir_results + "/output_uart.log"
 	with open(dir_embexp_progplat + "/temp/uart.log", "rb") as f:
-		writefile_or_compare(progplat_uartfile, f.read(), "outputs differ, check this")
+		uartlogdata = f.read()
 	# interpret uart output and write the result
 	result = json.dumps(evaluate_uart_single_test(progplat_uartfile))
+	# write both data, one after the other and compare
+	writefile_or_compare(progplat_uartfile, uartlogdata, "outputs differ, check this")
 	writefile_or_compare(exp_dir_results + "/result.json", result.encode('ascii'), "results differ, check this")
 
 finally:
