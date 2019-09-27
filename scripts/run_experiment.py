@@ -84,14 +84,11 @@ def gen_input_code(regmap):
 		asm += "\n"
 	return asm
 
-def evaluate_uart_single_test(filename):
-	with open(filename, "r") as f:
-		lines = f.readlines()
-
-	initcompleteline = "Init complete.\n"
-	resultline_true  = "RESULT: EQUAL\n"
-	resultline_false = "RESULT: UNEQUAL\n"
-	expcompleteline  = "Experiment complete.\n"
+def evaluate_uart_single_test(lines):
+	initcompleteline = "Init complete."
+	resultline_true  = "RESULT: EQUAL"
+	resultline_false = "RESULT: UNEQUAL"
+	expcompleteline  = "Experiment complete."
 
 	if len(lines) < 3:
 		raise Exception("unexpected output: not enough lines")
@@ -168,7 +165,7 @@ try:
 	with open(dir_embexp_progplat + "/temp/uart.log", "rb") as f:
 		uartlogdata = f.read()
 	# interpret uart output and write the result
-	result = json.dumps(evaluate_uart_single_test(progplat_uartfile))
+	result = json.dumps(evaluate_uart_single_test(list(map(lambda l: l.decode(), uartlogdata.split(b'\n')))))
 	# write both data, one after the other and compare
 	writefile_or_compare(progplat_uartfile, uartlogdata, "outputs differ, check this")
 	writefile_or_compare(exp_dir_results + "/result.json", result.encode('ascii'), "results differ, check this")
