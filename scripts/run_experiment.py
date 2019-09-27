@@ -89,27 +89,29 @@ def gen_input_code(regmap):
 
 def evaluate_uart_single_test(lines):
 	initcompleteline = "Init complete."
+	exception_prefix = "EXCEPTION: "
 	resultline_true  = "RESULT: EQUAL"
 	resultline_false = "RESULT: UNEQUAL"
 	expcompleteline  = "Experiment complete."
 
-	if len(lines) < 3:
-		raise Exception("unexpected output: not enough lines")
-	initline = lines[0]
-	resline  = lines[1]
-	endline  = lines[2]
+	if len(lines) < 1 or lines[0] != initcompleteline:
+		raise Exception(f"unexpected output: init has never been completed, first line is: {lines[0]}")
 
-	if initline != initcompleteline:
-		raise Exception(f"unexpected output: init has never been completed {initline}")
-	if endline != expcompleteline:
-		raise Exception(f"unexpected output: experiment is never completed {endline}")
+	if len(lines) < 2:
+		raise Exception(f"unexpected output: only the init line present")
 
-	if resline == resultline_true:
+	if lines[1].startswith(exception_prefix):
+		return f"embexp.board.exception :::: {lines[1][len(exception_prefix):]}"
+
+	if not expcompleteline in lines:
+		raise Exception(f"unexpected output: experiment is never completed")
+
+	if lines[1] == resultline_true:
 		return True
-	elif resline == resultline_false:
+	elif lines[1] == resultline_false:
 		return False
 	else:
-		raise Exception(f"the result line is not as expected: {resline}")
+		raise Exception(f"the result line is not as expected: {lines[1]}")
 
 
 # read input files
