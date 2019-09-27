@@ -9,10 +9,10 @@ import subprocess
 
 # parse arguments
 parser = argparse.ArgumentParser()
-parser.add_argument("exp_id", help="id of experiment: arm8/exps2/exp_cache_multiw/8127e2f5954aee7f63a34088d8b0547ab91dac14")
+parser.add_argument("exp_id", help="id of experiment: arm8/exps2/exp_cache_multiw/{EXPERIMENT_HASH}")
 
 parser.add_argument("-ep", "--embexp_path", help="path to embexp repositories")
-parser.add_argument("-mode", "--test_mode", help="test mode:\n\"try\" running connection, otherwise ad-hoc connect (runlog_try, default)\n\"reset\"connectwith reset (runlog_reset)\n\"run\" simply (runlog)")
+parser.add_argument("-mode", "--test_mode", help="test mode: try (default), run, reset. try for trying an active connection, otherwise do ad-hoc connect (runlog_try, default). reset for connect with reset (runlog_reset). run for simply using an active connection (runlog).")
 
 parser.add_argument("-nc", "--no_cleanup", help="do not cleanup after running", action="store_true")
 parser.add_argument("-fc", "--force_cleanup", help="force cleanup before running", action="store_true")
