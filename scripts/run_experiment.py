@@ -16,6 +16,7 @@ parser.add_argument("-mode", "--test_mode", help="test mode:\n\"try\" running co
 
 parser.add_argument("-nc", "--no_cleanup", help="do not cleanup after running", action="store_true")
 parser.add_argument("-fc", "--force_cleanup", help="force cleanup before running", action="store_true")
+parser.add_argument("-fr", "--force_results", help="force the current results as latest experiment results", action="store_true")
 
 parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
 args = parser.parse_args()
@@ -37,6 +38,7 @@ exp_path = os.path.abspath(os.path.join(os.path.join(os.path.dirname(__file__), 
 
 no_cleanup = args.no_cleanup
 force_cleanup = args.force_cleanup
+force_results = args.force_results
 test_mode = args.test_mode
 
 # helpers
@@ -63,8 +65,8 @@ def call_cmd(cmdl, error_msg):
 	if res != 0:
 		raise Exception(f"command {cmdl} not successful: {res} : {error_msg}")
 
-def writefile_or_compare(filename, content, errmsg):
-	if not os.path.exists(filename):
+def writefile_or_compare(forcenew, filename, content, errmsg):
+	if forcenew or not os.path.exists(filename):
 		with open(filename, "wb+") as f:
 			f.write(content)
 			return
@@ -180,8 +182,8 @@ try:
 	# interpret uart output and write the result
 	result = json.dumps(evaluate_uart_single_test(list(map(lambda l: l.decode(), uartlogdata.split(b'\n')))))
 	# write both data, one after the other and compare
-	writefile_or_compare(progplat_uartfile, uartlogdata, "outputs differ, check this")
-	writefile_or_compare(exp_dir_results + "/result.json", result.encode('ascii'), "results differ, check this")
+	writefile_or_compare(force_results, progplat_uartfile, uartlogdata, "outputs differ, check this")
+	writefile_or_compare(force_results, exp_dir_results + "/result.json", result.encode('ascii'), "results differ, check this")
 
 finally:
 	if not no_cleanup:
