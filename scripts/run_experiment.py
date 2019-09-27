@@ -12,7 +12,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument("exp_id", help="id of experiment: arm8/exps2/exp_cache_multiw/8127e2f5954aee7f63a34088d8b0547ab91dac14")
 
 parser.add_argument("-ep", "--embexp_path", help="path to embexp repositories")
-parser.add_argument("-rst", "--with_reset", help="test with reset in between", action="store_true")
+parser.add_argument("-mode", "--test_mode", help="test mode:\n\"try\" running connection, otherwise ad-hoc connect (runlog_try, default)\n\"reset\"connectwith reset (runlog_reset)\n\"run\" simply (runlog)")
+
+parser.add_argument("-nc", "--no_cleanup", help="do not cleanup after running", action="store_true")
+parser.add_argument("-fc", "--force_cleanup", help="force cleanup before running", action="store_true")
 
 parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
 args = parser.parse_args()
@@ -30,11 +33,11 @@ else:
 embexp_path = os.path.abspath(embexp_path)
 exp_id = args.exp_id
 assert len(exp_id.split('/')) == 4
-
 exp_path = os.path.abspath(os.path.join(os.path.join(os.path.dirname(__file__), ".."), exp_id))
 
-if args.with_reset:
-	raise Exception("cannot handle experiments with reset currently")
+no_cleanup = args.no_cleanup
+force_cleanup = args.force_cleanup
+test_mode = args.test_mode
 
 # helpers
 # ======================================
@@ -128,6 +131,9 @@ dir_embexp_progplat = embexp_path + "/EmbExp-ProgPlatform"
 logging.info(f"changing to {dir_embexp_progplat}")
 os.chdir(dir_embexp_progplat)
 # make sure that progplatform is clean
+if force_cleanup:
+	call_cmd(["git", "checkout", "--", "."], "couldn't reset progplatform")
+	call_cmd(["git", "clean", "-fdX", "."], "couldn't clean progplatform")
 logging.info(f"checking whether git repository is clean")
 if not git_check_clean():
 	raise Exception(f"check your working directory \"{os.getcwd()}\". either commit and push your changes or just clean it.")
@@ -151,7 +157,12 @@ try:
 	# run the experiment
 	# ======================================
 	logging.info(f"running experiment")
-	call_cmd(["make", "runlog_try"], "experiment didn't run successful")
+	if test_mode == "reset":
+		call_cmd(["make", "runlog_reset"], "experiment didn't run successful")
+	elif test_mode == "run":
+		call_cmd(["make", "runlog"], "experiment didn't run successful")
+	else:
+		call_cmd(["make", "runlog_try"], "experiment didn't run successful")
 
 	# save the outputs and test metadata
 	# ======================================
@@ -171,14 +182,15 @@ try:
 	writefile_or_compare(exp_dir_results + "/result.json", result.encode('ascii'), "results differ, check this")
 
 finally:
-	# finalize embexp-progplatform
-	# ======================================
-	logging.info(f"cleaning embexp-progplatform")
-	# make progplatform clean to prepare the next round
-	assert os.getcwd() == dir_embexp_progplat
-	call_cmd(["git", "checkout", "--", "."], "couldn't revert all changes in progplatform")
-	call_cmd(["git", "clean", "-fdX", "."], "couldn't clean progplatform")
-	assert git_check_clean()
+	if not no_cleanup:
+		# finalize embexp-progplatform
+		# ======================================
+		logging.info(f"cleaning embexp-progplatform")
+		# make progplatform clean to prepare the next round
+		assert os.getcwd() == dir_embexp_progplat
+		call_cmd(["git", "checkout", "--", "."], "couldn't revert all changes in progplatform")
+		call_cmd(["git", "clean", "-fdX", "."], "couldn't clean progplatform")
+		assert git_check_clean()
 
 print(f"result = {result}")
 
