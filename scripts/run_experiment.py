@@ -12,9 +12,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("exp_id", help="id of experiment: arm8/exps2/exp_cache_multiw/{EXPERIMENT_HASH}")
 
 parser.add_argument("-ep", "--embexp_path", help="path to embexp repositories")
-parser.add_argument("-mode", "--test_mode", help="test mode: try (default), run, reset. try for trying an active connection, otherwise do ad-hoc connect (runlog_try, default). reset for connect with reset (runlog_reset). run for simply using an active connection (runlog).")
+parser.add_argument("-cm", "--conn_mode", help="connection mode: try (default), run, reset. try for trying an active connection, otherwise do ad-hoc connect (runlog_try, default). reset for connect with reset (runlog_reset). run for simply using an active connection (runlog).")
 
-parser.add_argument("-nc", "--no_cleanup", help="do not cleanup after running", action="store_true")
+parser.add_argument("-nc", "--no_cleanup",    help="do not cleanup after running", action="store_true")
 parser.add_argument("-fc", "--force_cleanup", help="force cleanup before running", action="store_true")
 parser.add_argument("-fr", "--force_results", help="force the current results as latest experiment results", action="store_true")
 
@@ -39,12 +39,15 @@ exp_path = os.path.abspath(os.path.join(os.path.join(os.path.dirname(__file__), 
 no_cleanup = args.no_cleanup
 force_cleanup = args.force_cleanup
 force_results = args.force_results
-test_mode = args.test_mode
+conn_mode = args.conn_mode
 
 # helpers
 # ======================================
-def get_exp_path(path):
-	return exp_path + "/" + path
+def get_exp_path(path, needfile = False):
+	jpath = os.path.join(exp_path, path)
+	if needfile and not os.path.isfile(jpath):
+		raise Exception(f"file {jpath} doesn't exist")
+	return jpath
 
 def get_exp_branchname():
 	return os.path.basename(os.path.abspath(get_exp_path("..")))
@@ -119,13 +122,13 @@ def evaluate_uart_single_test(lines):
 # read input files
 # ======================================
 logging.info(f"reading input files")
-with open(get_exp_path(f"code.hash"), "r") as f:
+with open(get_exp_path(f"code.hash", True), "r") as f:
 	prog_id = f.read().strip()
-with open(get_exp_path(f"../../../progs/{prog_id}/code.asm"), "r") as f:
+with open(get_exp_path(f"../../../progs/{prog_id}/code.asm", True), "r") as f:
 	code_asm = f.read()
-with open(get_exp_path("input1.json"), "r") as f:
+with open(get_exp_path("input1.json", True), "r") as f:
 	input1 = json.load(f)
-with open(get_exp_path("input2.json"), "r") as f:
+with open(get_exp_path("input2.json", True), "r") as f:
 	input2 = json.load(f)
 
 
@@ -161,9 +164,9 @@ try:
 	# run the experiment
 	# ======================================
 	logging.info(f"running experiment")
-	if test_mode == "reset":
+	if conn_mode == "reset":
 		call_cmd(["make", "runlog_reset"], "experiment didn't run successful")
-	elif test_mode == "run":
+	elif conn_mode == "run":
 		call_cmd(["make", "runlog"], "experiment didn't run successful")
 	else:
 		call_cmd(["make", "runlog_try"], "experiment didn't run successful")
