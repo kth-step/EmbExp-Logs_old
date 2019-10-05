@@ -7,10 +7,6 @@ if [[ -z "${EMBEXP_PROG_HASH}" ]]; then
   exit 1
 fi
 
-source 1-env.sh
-
-cd ${HOLBA_EMBEXP_LOGS}
-
 echo "program count"
 find arm8/progs -mindepth 1 -maxdepth 1 | wc -l
 echo "experiment count"
@@ -27,6 +23,7 @@ find . -name "result.json" | grep "${EMBEXP_PROG_HASH}/result.json" | xargs grep
 echo "find counterexamples or non-successful experiments"
 echo "==========================================================="
 find . -name "result.json" | grep "${EMBEXP_PROG_HASH}/result.json" | xargs grep -v true | wc -l
+find . -name "result.json" | grep "${EMBEXP_PROG_HASH}/result.json" | xargs grep -v true
 
 echo
 
