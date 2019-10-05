@@ -24,6 +24,8 @@ args = parser.parse_args()
 embexp_path = args.embexp_path
 if embexp_path == None:
 	embexp_path = os.path.expandvars("${HOLBA_EMBEXP_DIR}")
+if not os.path.isdir(embexp_path):
+	raise Exception(f"Path to embexp is not an existing directory: {embexp_path}")
 
 # set log level
 if args.verbose:
