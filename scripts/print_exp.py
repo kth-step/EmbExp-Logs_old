@@ -38,7 +38,10 @@ def gen_input(regmap):
 		assert val < 2**64
 		assert val >= 0
 		val_str = val.to_bytes(8, byteorder='big').hex()
-		s += f"ldr {reg.ljust(5)}, =0x{val_str}\n"
+		t_str = (val >> 13).to_bytes(7, byteorder='big').hex()
+		s_str = ((val >>  6) & 0x7F).to_bytes(1, byteorder='big').hex()
+		o_str = ((val >>  0) & 0x3F).to_bytes(1, byteorder='big').hex()
+		s += f"{reg.ljust(5)} = {val_str} ::: (t={t_str}, s={s_str}, o={o_str})\n"
 	return s
 
 # read input files
