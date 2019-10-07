@@ -84,14 +84,20 @@ def writefile_or_compare(forcenew, filename, content, errmsg):
 			raise Exception(f"file {filename} has unexpected content: {errmsg}")
 
 def gen_input_code(regmap):
-	asm = "\n"
+	asm = ""
+	use_constmov = True
 	for reg in regmap.keys():
 		val = regmap[reg]
 		assert val < 2**64
 		assert val >= 0
 		val_str = val.to_bytes(8, byteorder='big').hex()
-		asm += f"\tldr {reg}, =0x{val_str}\n"
-		asm += "\n"
+		asm_val_l1 = f"\tldr {reg}, =0x{val_str}\n"
+		asm_val_lm = ""
+		for i in range(4):
+			hexstr = val_str[(4-i-1)*2*2:(4-i)*2*2]
+			asm_val_lm += f"\tmovk {reg}, #0x{hexstr}, lsl #{16 * i}\n"
+		asm_val = asm_val_lm if use_constmov else asm_val_l1
+		asm += f"\t// {reg} = 0x{val_str}\n{asm_val}\n"
 	return asm
 
 def evaluate_uart_single_test(lines):
