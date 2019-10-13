@@ -68,6 +68,29 @@ class ProgPlatform:
 		with open(os.path.join(self.progplat_path, f"inc/experiment/{filename}"), "w+") as f:
 			f.write(contents)
 
+	def configure_experiment(self, board_type, exp):
+		assert self._writable
+
+		assert exp.get_exp_type() == "exps2"
+
+		logging.info(f"reading input files")
+		code_asm = exp.get_code()
+		input1   = exp.get_input_file("input1.json")
+		input2   = exp.get_input_file("input2.json")
+
+		config_text = ""
+		config_text += f"PROGPLAT_ARCH   ={exp.get_exp_arch()}\n"
+		config_text += f"PROGPLAT_TYPE   ={exp.get_exp_type()}\n"
+		config_text += f"PROGPLAT_PARAMS ={exp.get_exp_params_id()}\n"
+		config_text += f"PROGPLAT_BOARD  ={board_type}\n"
+		with open(os.path.join(self.progplat_path, f"Makefile.config"), "w+") as f:
+			f.write(config_text)
+
+		self.write_experiment_file("cache_run_input.h", code_asm)
+		self.write_experiment_file("cache_run_input_setup1.h", gen_input_code(input1))
+		self.write_experiment_file("cache_run_input_setup2.h", gen_input_code(input2))
+
+
 	def run_experiment(self, conn_mode = None):
 		error_msg = "experiment didn't run successful"
 		if conn_mode == "try" or conn_mode == None:

@@ -44,16 +44,9 @@ force_cleanup = args.force_cleanup
 force_results = args.force_results
 conn_mode = args.conn_mode
 
-
-# read input files
-# ======================================
-logging.info(f"reading input files")
+# can only handle arm8 at the moment and run on rpi3
 assert exp.get_exp_arch() == "arm8"
 board_type = "rpi3"
-assert exp.get_exp_type() == "exps2"
-code_asm = exp.get_code()
-input1   = exp.get_input_file("input1.json")
-input2   = exp.get_input_file("input2.json")
 
 # make sure that progplatform is clean
 # ======================================
@@ -61,16 +54,13 @@ progplat.check_clean(force_cleanup)
 
 # change to corresponding branch
 # ======================================
-branchname = exp.get_exp_params_id()
-progplat.change_branch(branchname)
+progplat.change_branch("master")
 
 try:
 	# generate the experiment code
 	# ======================================
 	logging.info(f"generating experiment code")
-	progplat.write_experiment_file("cache_run_input.h", code_asm)
-	progplat.write_experiment_file("cache_run_input_setup1.h", gen_input_code(input1))
-	progplat.write_experiment_file("cache_run_input_setup2.h", gen_input_code(input2))
+	progplat.configure_experiment(board_type, exp)
 
 	# run the experiment
 	# ======================================
