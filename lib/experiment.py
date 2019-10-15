@@ -59,7 +59,8 @@ class Experiment:
 
 	def is_valid_experiment(self):
 		filespresent = True
-		for filename in ["code.hash", "input1.json", "input2.json"]:
+		filenames = ["code.hash", "input1.json"] + (["input2.json"] if self.get_exp_type() == "exps2" else [])
+		for filename in filenames:
 			filespresent = filespresent and os.path.isfile(self.get_path(filename))
 		with open(self.get_path("code.hash", True), "r") as f:
 			codehash = f.read().strip()
