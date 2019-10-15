@@ -12,6 +12,19 @@ class Experiment:
 		self.exp_path = get_logs_path(exp_id)
 		assert os.path.isdir(self.exp_path)
 
+	def create(exp_id, files):
+		exp_path = get_logs_path(exp_id)
+		# create experiment directory, exception if it already exists
+		exp_dir_path = os.path.dirname(exp_path)
+		if not os.path.isdir(exp_dir_path):
+			os.makedirs(exp_dir_path)
+		os.mkdir(exp_path)
+		# write all data, one after the other
+		for (filename, bindata) in files:
+			filepath = os.path.join(exp_path, filename)
+			writefile_or_compare(False, filepath, bindata, "this should never happen")
+		return Experiment(exp_id)
+
 	def get_path(self, path, needfile = False):
 		jpath = os.path.join(self.exp_path, path)
 		if needfile and not os.path.isfile(jpath):
