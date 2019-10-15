@@ -48,6 +48,10 @@ conn_mode = args.conn_mode
 assert exp.get_exp_arch() == "arm8"
 board_type = "rpi3"
 
+# can only handle exps1 and exps2
+exp_type = exp.get_exp_type()
+assert exp_type == "exps2" or exp_type == "exps1"
+
 # make sure that progplatform is clean
 # ======================================
 progplat.check_clean(force_cleanup)
@@ -67,7 +71,13 @@ try:
 	logging.info(f"running experiment")
 	uartlogdata_bin = progplat.run_experiment(conn_mode)
 	# interpret the experiment result
-	result = json.dumps(evaluate_uart_single_test(list(map(lambda l: l.decode(), uartlogdata_bin.split(b'\n')))))
+	if exp_type == "exps2":
+		result = json.dumps(evaluate_uart_single_test(list(map(lambda l: l.decode(), uartlogdata_bin.split(b'\n')))))
+	elif exp_type == "exps1":
+		# TODO: add data parsing/extraction
+		result = uartlogdata_bin.decode()
+	else:
+		raise Exception(f"unknown experiment type: {exp_type}")
 
 	# save the outputs and test metadata
 	# ======================================
@@ -75,7 +85,8 @@ try:
 	# TODO: with reset the output format could be: output1/2_uart.log and result_rst.json
 	outputs = []
 	outputs.append(("output_uart.log", uartlogdata_bin))
-	outputs.append(("result.json",     result.encode('utf-8')))
+	if exp_type == "exps2":
+		outputs.append(("result.json",     result.encode('utf-8')))
 	exp.write_results(progplat.get_commit_hash(), board_type, outputs, force_results)
 
 finally:

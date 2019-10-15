@@ -70,13 +70,14 @@ class ProgPlatform:
 
 	def configure_experiment(self, board_type, exp):
 		assert self._writable
-
-		assert exp.get_exp_type() == "exps2"
+		self.exp_type = exp.get_exp_type()
+		assert self.exp_type == "exps2" or self.exp_type == "exps1"
 
 		logging.info(f"reading input files")
 		code_asm = exp.get_code()
 		input1   = exp.get_input_file("input1.json")
-		input2   = exp.get_input_file("input2.json")
+		if self.exp_type == "exps2":
+			input2   = exp.get_input_file("input2.json")
 
 		config_text = ""
 		config_text += f"PROGPLAT_ARCH        ={exp.get_exp_arch()}\n"
@@ -89,7 +90,8 @@ class ProgPlatform:
 
 		self.write_experiment_file("cache_run_input.h", code_asm)
 		self.write_experiment_file("cache_run_input_setup1.h", gen_input_code(input1))
-		self.write_experiment_file("cache_run_input_setup2.h", gen_input_code(input2))
+		if self.exp_type == "exps2":
+			self.write_experiment_file("cache_run_input_setup2.h", gen_input_code(input2))
 
 
 	def run_experiment(self, conn_mode = None):
