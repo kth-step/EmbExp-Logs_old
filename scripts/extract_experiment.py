@@ -6,6 +6,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../lib"))
 
 import argparse
 import logging
+import shutil
 
 import experiment
 from helpers import *
@@ -16,7 +17,8 @@ parser.add_argument("exp_id",             help="id of experiment: arm8/exps2/exp
 parser.add_argument("input_index",        help="input index to choose from exp_id", type=int, choices=range(1, 3))
 parser.add_argument("exp_new_name",       help="id of experiment: arm8/exps2/exp_cache_multiw/{EXPERIMENT_HASH}")
 
-parser.add_argument("-exec", "--execute", help="run the experiment afterwards", action="store_true")
+parser.add_argument("-exec", "--execute",    help="run the experiment afterwards", action="store_true")
+parser.add_argument("-ra", "--remove_after", help="remove experiment afterwards", action="store_true")
 
 parser.add_argument("-v", "--verbose",    help="increase output verbosity", action="store_true")
 args = parser.parse_args()
@@ -33,6 +35,10 @@ exp = experiment.Experiment(exp_id)
 input_index = args.input_index
 exp_new_name = args.exp_new_name
 execute = args.execute
+remove_after = args.remove_after
+
+if remove_after and not execute:
+	raise Exception("inconsistent parameters selected: won't remove without execute")
 
 # can only handle exps2
 exp_type = exp.get_exp_type()
@@ -48,8 +54,15 @@ with open(exp.get_path(f"input{input_index}.json", True), "rb") as f:
 
 exp_new = experiment.Experiment.create(exp_new_id, files)
 
-print(f"exp_new_id = {exp_new_id}")
+if not remove_after:
+	print(f"exp_new_id = {exp_new_id}")
 
 if execute:
-	subprocess.call([get_logs_path("scripts/run_experiment.py"), exp_new_id])
+	try:
+		subprocess.call([get_logs_path("scripts/run_experiment.py"), exp_new_id])
+	finally:
+		if remove_after:
+			exp_new_path = os.path.abspath(exp_new.get_path("."))
+			shutil.rmtree(exp_new_path)
+			print(f"successfully removed experiment directory {exp_new_path}")
 
