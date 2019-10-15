@@ -65,8 +65,7 @@ else:
 	exp_type = exp_class.split('/')[1]
 	assert exp_type == "exps2"
 	exp_params_id = exp_class.split('/')[2]
-	branchname = exp_params_id
-	progplat_hash = progplat.get_branch_commit_hash(branchname)
+	progplat_hash = progplat.get_branch_commit_hash("master")
 
 	exps_dir = get_logs_path(exp_class)
 	if not os.path.isdir(exps_dir):
