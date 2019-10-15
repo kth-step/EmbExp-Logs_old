@@ -86,8 +86,7 @@ try:
 	# TODO: with reset the output format could be: output1/2_uart.log and result_rst.json
 	outputs = []
 	outputs.append(("output_uart.log", uartlogdata_bin))
-	if exp_type == "exps2":
-		outputs.append(("result.json",     result.encode('utf-8')))
+	outputs.append(("result.json",     result.encode('utf-8')))
 	exp.write_results(progplat.get_commit_hash(), board_type, outputs, force_results)
 
 finally:
