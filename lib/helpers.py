@@ -70,6 +70,10 @@ def check_uart_experiment_base(lines):
 	exception_prefix = "EXCEPTION: "
 	expcompleteline  = "Experiment complete."
 
+	# remove empty lines from the end
+	while len(lines) > 0 and lines[-1] == "":
+		lines = lines[:-1]
+
 	if len(lines) < 1 or lines[0] != initcompleteline:
 		raise Exception(f"unexpected output: init has never been completed, first line is: {lines[0]}")
 
@@ -78,9 +82,6 @@ def check_uart_experiment_base(lines):
 
 	if lines[1].startswith(exception_prefix):
 		return f"embexp.board.exception :::: {lines[1][len(exception_prefix):]}"
-
-	while lines[-1] == "":
-		lines = lines[:-1]
 
 	if lines[-1] != expcompleteline:
 		raise Exception(f"unexpected output: experiment is never completed")
