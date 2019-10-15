@@ -79,10 +79,11 @@ class ProgPlatform:
 		input2   = exp.get_input_file("input2.json")
 
 		config_text = ""
-		config_text += f"PROGPLAT_ARCH   ={exp.get_exp_arch()}\n"
-		config_text += f"PROGPLAT_TYPE   ={exp.get_exp_type()}\n"
-		config_text += f"PROGPLAT_PARAMS ={exp.get_exp_params_id()}\n"
-		config_text += f"PROGPLAT_BOARD  ={board_type}\n"
+		config_text += f"PROGPLAT_ARCH        ={exp.get_exp_arch()}\n"
+		config_text += f"PROGPLAT_TYPE        ={exp.get_exp_type()}\n"
+		config_text += f"PROGPLAT_PARAMS      ={exp.get_exp_params_id()}\n"
+		config_text += f"PROGPLAT_BOARD       ={board_type}\n"
+		config_text += f"PROGPLAT_RUN_TIMEOUT =6\n"
 		with open(os.path.join(self.progplat_path, f"Makefile.config"), "w+") as f:
 			f.write(config_text)
 
