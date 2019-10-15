@@ -65,11 +65,9 @@ def gen_readable(regmap):
 		s += f"{reg.ljust(5)} = {val_str} ::: (t={t_str}, s={s_str}, o={o_str})\n"
 	return s
 
-def evaluate_uart_single_test(lines):
+def check_uart_experiment_base(lines):
 	initcompleteline = "Init complete."
 	exception_prefix = "EXCEPTION: "
-	resultline_true  = "RESULT: EQUAL"
-	resultline_false = "RESULT: UNEQUAL"
 	expcompleteline  = "Experiment complete."
 
 	if len(lines) < 1 or lines[0] != initcompleteline:
@@ -81,14 +79,67 @@ def evaluate_uart_single_test(lines):
 	if lines[1].startswith(exception_prefix):
 		return f"embexp.board.exception :::: {lines[1][len(exception_prefix):]}"
 
-	if not expcompleteline in lines:
+	while lines[-1] == "":
+		lines = lines[:-1]
+
+	if lines[-1] != expcompleteline:
 		raise Exception(f"unexpected output: experiment is never completed")
 
-	if lines[1] == resultline_true:
+	return lines[1:-1]
+
+def parse_uart_single_cache_experiment(lines):
+	lines = check_uart_experiment_base(lines)
+	if isinstance(lines, str):
+		return lines
+
+	sepline = "----"
+	funcline = "print_cache_full"
+	assert lines[0] == sepline
+	assert lines[1] == funcline
+	assert lines[2] == sepline
+	assert lines[-1] == sepline
+	lines = lines[3:-1]
+	assert len(lines) % (1 + 4*4) == 0
+	s = 0
+	sets = []
+	while len(lines) > 0:
+		assert lines[0] == f"set={s}"
+		lines = lines[1:]
+		s_val = {"set": s, "lines": []}
+		l = 0
+		while len(lines) > 0 and not lines[0].startswith("set"):
+			assert lines[0] == f"line={l}"
+			tag   = lines[1]
+			valid = lines[2]
+			if valid == " valid 1":
+				valid = True
+			elif valid == " valid 0":
+				valid = False
+			else:
+				raise Exception("valid line is wrong")
+			regs  = lines[3]
+			l_val = {"line": l, "tag": tag, "valid": valid, "regs": regs}
+			s_val["lines"].append(l_val)
+			lines = lines[4:]
+			l += 1
+		sets.append(s_val)
+		s += 1
+
+	return sets
+
+def eval_uart_pair_cache_experiment(lines):
+	lines = check_uart_experiment_base(lines)
+	if isinstance(lines, str):
+		return lines
+
+	resultline_true  = "RESULT: EQUAL"
+	resultline_false = "RESULT: UNEQUAL"
+
+	if lines[0] == resultline_true:
 		return True
-	elif lines[1] == resultline_false:
+	elif lines[0] == resultline_false:
 		return False
 	else:
-		raise Exception(f"the result line is not as expected: {lines[1]}")
+		raise Exception(f"the result line is not as expected: {lines[0]}")
 
 

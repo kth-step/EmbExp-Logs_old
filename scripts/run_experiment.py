@@ -71,13 +71,14 @@ try:
 	logging.info(f"running experiment")
 	uartlogdata_bin = progplat.run_experiment(conn_mode)
 	# interpret the experiment result
+	uartlogdata_lines = list(map(lambda l: l.decode(), uartlogdata_bin.split(b'\n')))
 	if exp_type == "exps2":
-		result = json.dumps(evaluate_uart_single_test(list(map(lambda l: l.decode(), uartlogdata_bin.split(b'\n')))))
+		result_val = eval_uart_pair_cache_experiment(uartlogdata_lines)
 	elif exp_type == "exps1":
-		# TODO: add data parsing/extraction
-		result = uartlogdata_bin.decode()
+		result_val = parse_uart_single_cache_experiment(uartlogdata_lines)
 	else:
 		raise Exception(f"unknown experiment type: {exp_type}")
+	result = json.dumps(result_val)
 
 	# save the outputs and test metadata
 	# ======================================
@@ -97,7 +98,20 @@ finally:
 		# make progplatform clean to prepare the next round
 		progplat.check_clean(True)
 
-# the last line is a simple result line, that can be interpreted by another program
+# the last line is a simple result line, that can be interpreted by another program, if exps2
 # ======================================
-print(f"result = {result}")
+if exp_type == "exps2":
+	print(f"result = {result}") # don't break this interface!
+elif exp_type == "exps1":
+	print("=" * 40)
+	sets_valid = list(filter(lambda x: any(l_val["valid"] for l_val in x["lines"]), result_val))
+	sets_clean = list(map(lambda x: {"set": x["set"],"lines": list(filter(lambda l_val: l_val["valid"], x["lines"]))}, sets_valid))
+	for s_val in sets_clean:
+		print(f"set {s_val['set']}")
+		for l_val in s_val["lines"]:
+			print(f"\tline {l_val['line']}, tag: {l_val['tag']}")
+	print("=" * 40)
+else:
+	raise Exception(f"unknown experiment type: {exp_type}")
+
 
