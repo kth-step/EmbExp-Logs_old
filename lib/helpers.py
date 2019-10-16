@@ -31,18 +31,32 @@ def call_cmd(cmdl, error_msg, show_output = True, show_error = True):
 	if res != 0:
 		raise Exception(f"command {cmdl} not successful: {res} : {error_msg}")
 
+def comparefile(filename, content, printifdifferent = False):
+	if not os.path.exists(filename):
+		return True
+
+	with open(filename, "rb") as f:
+		file_content = f.read()
+	result = file_content == content
+
+	if not result:
+		sys.stderr.write("=" * 40 + "\n")
+		sys.stderr.write(f"file doesn't match: {filename}\n")
+		sys.stderr.write("=" * 40 + "\n")
+		sys.stderr.write(content.decode("utf-8", errors="ignore"))
+		sys.stderr.write("\n")
+		sys.stderr.write("=" * 40 + "\n")
+		sys.stderr.flush()
+
+	return result
+
 def writefile_or_compare(forcenew, filename, content, errmsg):
 	if forcenew or not os.path.exists(filename):
 		with open(filename, "wb+") as f:
 			f.write(content)
 			return
-	with open(filename, "rb") as f:
-		file_content = f.read()
-		if file_content != content:
-			sys.stderr.write(file_content.decode("utf-8"))
-			sys.stderr.write(content.decode("utf-8"))
-			sys.stderr.flush()
-			raise Exception(f"file {filename} has unexpected content: {errmsg}")
+	if not comparefile(filename, content, True):
+		raise Exception(f"file {filename} has unexpected content: {errmsg}")
 
 def gen_input_code(regmap):
 	asm = ""

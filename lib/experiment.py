@@ -78,10 +78,18 @@ class Experiment:
 		exp_dir_results = self.get_path(f"{progplat_hash}_{board_type}")
 		# create the directory
 		call_cmd(["mkdir", "-p", exp_dir_results], "could not create directory")
-		# write all data, one after the other and compare
+		nomismatches = True
+		# find whether there are mismatches
 		for (filename, bindata) in outputs:
 			filepath = os.path.join(exp_dir_results, filename)
-			writefile_or_compare(force_results, filepath, bindata, "files differ, check this")
+			nomismatches = nomismatches and comparefile(filepath, bindata)
+		if not force_results and not nomismatches:
+			return False
+		# write all data, one after the other
+		for (filename, bindata) in outputs:
+			filepath = os.path.join(exp_dir_results, filename)
+			writefile_or_compare(force_results, filepath, bindata, "this should never happen")
+		return nomismatches
 
 	def print(self):
 		assert self.get_exp_type() == "exps2" or self.get_exp_type() == "exps1"
