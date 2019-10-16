@@ -24,8 +24,5 @@ if args.verbose:
 else:
 	logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
 
-exp_id = args.exp_id
-exp = experiment.Experiment(exp_id)
-
-exp.print()
+experiment.Experiment(args.exp_id).print()
 

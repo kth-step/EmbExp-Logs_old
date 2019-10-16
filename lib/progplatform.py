@@ -25,7 +25,7 @@ class ProgPlatform:
 		assert os.path.isdir(self.progplat_path)
 		logging.info(f"using {self.progplat_path}")
 		self._writable = False
-		self.show_outputs = False
+		self.show_outputs = logging.getLogger().level <= logging.DEBUG
 
 	def get_commit_hash(self):
 		progplat_hash = self._call_git_cmd_get_output(["rev-parse", "HEAD"], "coudln't get commit hash")
@@ -71,13 +71,13 @@ class ProgPlatform:
 
 	def configure_experiment(self, board_type, exp):
 		assert self._writable
-		self.exp_type = exp.get_exp_type()
-		assert self.exp_type == "exps2" or self.exp_type == "exps1"
+		exp_type = exp.get_exp_type()
+		assert exp_type == "exps2" or exp_type == "exps1"
 
 		logging.info(f"reading input files")
 		code_asm = exp.get_code()
 		input1   = exp.get_input_file("input1.json")
-		if self.exp_type == "exps2":
+		if exp_type == "exps2":
 			input2   = exp.get_input_file("input2.json")
 
 		config_text = ""
@@ -85,16 +85,16 @@ class ProgPlatform:
 		config_text += f"PROGPLAT_TYPE        ={exp.get_exp_type()}\n"
 		config_text += f"PROGPLAT_PARAMS      ={exp.get_exp_params_id()}\n"
 		config_text += f"PROGPLAT_BOARD       ={board_type}\n"
-		if self.exp_type == "exps2":
+		if exp_type == "exps2":
 			config_text += f"PROGPLAT_RUN_TIMEOUT =6\n"
-		elif self.exp_type == "exps1":
+		elif exp_type == "exps1":
 			config_text += f"PROGPLAT_RUN_TIMEOUT =20\n"
 		with open(os.path.join(self.progplat_path, f"Makefile.config"), "w+") as f:
 			f.write(config_text)
 
 		self.write_experiment_file("cache_run_input.h", code_asm)
 		self.write_experiment_file("cache_run_input_setup1.h", gen_input_code(input1))
-		if self.exp_type == "exps2":
+		if exp_type == "exps2":
 			self.write_experiment_file("cache_run_input_setup2.h", gen_input_code(input2))
 
 

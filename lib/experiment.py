@@ -84,13 +84,14 @@ class Experiment:
 			writefile_or_compare(force_results, filepath, bindata, "files differ, check this")
 
 	def print(self):
-		assert self.get_exp_type() == "exps2"
+		assert self.get_exp_type() == "exps2" or self.get_exp_type() == "exps1"
 
 		# read input files
 		prog_id  = self.get_prog_id()
 		code_asm = self.get_code()
 		input1   = self.get_input_file("input1.json")
-		input2   = self.get_input_file("input2.json")
+		if self.get_exp_type() == "exps2":
+			input2   = self.get_input_file("input2.json")
 
 		# printout
 		print(f"prog_id = {prog_id}")
@@ -101,6 +102,7 @@ class Experiment:
 		print("="*20)
 		print(gen_readable(input1))
 		print("="*20)
-		print(gen_readable(input2))
-		print("="*20)
+		if self.get_exp_type() == "exps2":
+			print(gen_readable(input2))
+			print("="*20)
 
