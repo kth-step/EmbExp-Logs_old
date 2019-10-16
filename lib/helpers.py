@@ -9,16 +9,25 @@ logs_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 def get_logs_path(path):
 	return os.path.join(logs_path, path)
 
-def call_cmd_get_output(cmdl, error_msg):
-	proc = subprocess.Popen(cmdl,stdout=subprocess.PIPE)
+def call_cmd_get_output(cmdl, error_msg, show_error = True):
+	error_file = None
+	if not show_error:
+		error_file = subprocess.DEVNULL
+	proc = subprocess.Popen(cmdl, stdout=subprocess.PIPE)
 	proc.wait()
 	res = proc.poll()
 	if res != 0:
 		raise Exception(f"command {cmdl} not successful: {res} : {error_msg}")
 	return proc.stdout.read()
 
-def call_cmd(cmdl, error_msg):
-	res = subprocess.call(cmdl)
+def call_cmd(cmdl, error_msg, show_output = True, show_error = True):
+	output_file = None
+	if not show_output:
+		output_file = subprocess.DEVNULL
+	error_file = None
+	if not show_error:
+		error_file = subprocess.DEVNULL
+	res = subprocess.call(cmdl, stdout=output_file, stderr=error_file)
 	if res != 0:
 		raise Exception(f"command {cmdl} not successful: {res} : {error_msg}")
 

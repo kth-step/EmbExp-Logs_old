@@ -25,6 +25,7 @@ class ProgPlatform:
 		assert os.path.isdir(self.progplat_path)
 		logging.info(f"using {self.progplat_path}")
 		self._writable = False
+		self.show_outputs = False
 
 	def get_commit_hash(self):
 		progplat_hash = self._call_git_cmd_get_output(["rev-parse", "HEAD"], "coudln't get commit hash")
@@ -39,13 +40,13 @@ class ProgPlatform:
 		return ["git", "--git-dir", f"{self.progplat_path}/.git", "--work-tree", self.progplat_path]
 
 	def _call_git_cmd_get_output(self, gitcmdl, error_msg):
-		return call_cmd_get_output(self._get_git_call() + gitcmdl, error_msg)
+		return call_cmd_get_output(self._get_git_call() + gitcmdl, error_msg, self.show_outputs)
 
 	def _call_git_cmd(self, gitcmdl, error_msg):
-		call_cmd(self._get_git_call() + gitcmdl, error_msg)
+		call_cmd(self._get_git_call() + gitcmdl, error_msg, self.show_outputs, self.show_outputs)
 
 	def _call_make_cmd(self, makecmdl, error_msg):
-		call_cmd(["make", "-C", self.progplat_path] + makecmdl, error_msg)
+		call_cmd(["make", "-C", self.progplat_path] + makecmdl, error_msg, self.show_outputs, self.show_outputs)
 
 	def check_clean(self, force_cleanup = False):
 		if force_cleanup:
@@ -99,14 +100,16 @@ class ProgPlatform:
 
 	def run_experiment(self, conn_mode = None):
 		error_msg = "experiment didn't run successful"
+		maketarget = "targetdoesnotexist"
 		if conn_mode == "try" or conn_mode == None:
-			self._call_make_cmd(["runlog_try"], error_msg)
+			maketarget = "runlog_try"
 		elif conn_mode == "run":
-			self._call_make_cmd(["runlog"], error_msg)
+			maketarget = "runlog"
 		elif conn_mode == "reset":
-			self._call_make_cmd(["runlog_reset"], error_msg)
+			maketarget = "runlog_reset"
 		else:
 			raise Exception(f"invalid conn_mode: {conn_mode}")
+		self._call_make_cmd([maketarget], error_msg)
 		# read and return the uart output (binary)
 		with open(os.path.join(self.progplat_path, "temp/uart.log"), "rb") as f:
 				uartlogdata = f.read()

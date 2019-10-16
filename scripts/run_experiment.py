@@ -33,6 +33,7 @@ progplat = progplatform.get_embexp_ProgPlatform(args.embexp_path)
 # set log level
 if args.verbose:
 	logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+	progplat.show_outputs = True
 else:
 	logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
 
