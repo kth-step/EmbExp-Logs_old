@@ -9,7 +9,7 @@ import logging
 import shutil
 
 import experiment
-from helpers import *
+import exp_runner
 
 # parse arguments
 parser = argparse.ArgumentParser()
@@ -59,10 +59,10 @@ if not remove_after:
 
 if execute:
 	try:
-		subprocess.call([get_logs_path("scripts/run_experiment.py"), exp_new_id])
+		exp_runner.run_experiment(exp_new_id, printeval = True)
 	finally:
 		if remove_after:
 			exp_new_path = os.path.abspath(exp_new.get_path("."))
 			shutil.rmtree(exp_new_path)
-			print(f"successfully removed experiment directory {exp_new_path}")
+			logging.info(f"successfully removed experiment directory {exp_new_path}")
 
