@@ -10,7 +10,7 @@ def get_experiment_run_id(progplat, board_type):
 	progplat_hash = progplat.get_commit_hash()
 	return f"{progplat_hash}_{board_type}"
 
-def run_experiment(exp_id, progplat = None, board_type = None, branchname = None, conn_mode = None, force_cleanup = False, force_results = False, no_cleanup = False, printeval = False, ignoremismatch = False):
+def run_experiment(exp_id, progplat = None, board_type = None, branchname = None, conn_mode = None, force_cleanup = False, force_results = False, no_cleanup = False, printeval = False, ignoremismatch = False, write_results = True):
 	if progplat == None:
 		progplat = progplatform.get_embexp_ProgPlatform(None)
 
@@ -69,12 +69,14 @@ def run_experiment(exp_id, progplat = None, board_type = None, branchname = None
 
 		# save the outputs and test metadata
 		# ======================================
-		logging.info(f"saving experiment data")
-		# TODO: with reset the output format could be: output1/2_uart.log and result_rst.json
-		outputs = []
-		outputs.append(("output_uart.log", uartlogdata_bin))
-		outputs.append(("result.json",     result.encode('utf-8')))
-		nomismatches = exp.write_results(get_experiment_run_id(progplat, board_type), outputs, force_results)
+		nomismatches = True
+		if write_results:
+			logging.info(f"saving experiment data")
+			# TODO: with reset the output format could be: output1/2_uart.log and result_rst.json
+			outputs = []
+			outputs.append(("output_uart.log", uartlogdata_bin))
+			outputs.append(("result.json",     result.encode('utf-8')))
+			nomismatches = exp.write_results(get_experiment_run_id(progplat, board_type), outputs, force_results)
 
 	finally:
 		if not no_cleanup:

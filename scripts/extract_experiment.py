@@ -59,7 +59,7 @@ if not remove_after:
 
 if execute:
 	try:
-		exp_runner.run_experiment(exp_new_id, printeval = True)
+		exp_runner.run_experiment(exp_new_id, printeval=True, write_results=False)
 	finally:
 		if remove_after:
 			exp_new_path = os.path.abspath(exp_new.get_path("."))
