@@ -64,5 +64,5 @@ if execute:
 		if remove_after:
 			exp_new_path = os.path.abspath(exp_new.get_path("."))
 			shutil.rmtree(exp_new_path)
-			logging.info(f"successfully removed experiment directory {exp_new_path}")
+			print(f"successfully removed experiment directory {exp_new_path}")
 

@@ -74,8 +74,8 @@ class Experiment:
 			is_complete = is_complete and os.path.isfile(self.get_path(f"{progplat_hash}_{board_type}/{filename}"))
 		return not is_complete
 
-	def write_results(self, progplat_hash, board_type, outputs, force_results = False):
-		exp_dir_results = self.get_path(f"{progplat_hash}_{board_type}")
+	def write_results(self, run_id, outputs, force_results = False):
+		exp_dir_results = self.get_path(run_id)
 		# create the directory
 		call_cmd(["mkdir", "-p", exp_dir_results], "could not create directory")
 		nomismatches = True

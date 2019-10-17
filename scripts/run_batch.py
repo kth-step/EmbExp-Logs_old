@@ -59,16 +59,20 @@ else:
 # ======================================
 logging.info(f"running all selected experiments")
 successful = True
+someSuccessful = False
 for exp_id in exp_list:
-	logging.warning(f"{exp_id}")
+	print(f"===>>> {exp_id}")
 	try:
 		exp_runner.run_experiment(exp_id, progplat, board_type, None, args.conn_mode, False, args.force_results)
+		someSuccessful = True
 	except:
 		successful = False
 
 print()
 print("="*40)
 print("="*40)
+if (someSuccessful):
+	print(f"run_id = {exp_runner.get_experiment_run_id(progplat, board_type)}")
 print("="*40)
 if successful:
 	print("ALL EXPERIMENTS COMPLETED")

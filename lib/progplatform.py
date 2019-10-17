@@ -23,7 +23,7 @@ class ProgPlatform:
 	def __init__(self, progplat_path):
 		self.progplat_path = embexp_path = os.path.abspath(progplat_path)
 		assert os.path.isdir(self.progplat_path)
-		logging.info(f"using {self.progplat_path}")
+		logging.debug(f"using {self.progplat_path}")
 		self._writable = False
 		self.show_outputs = logging.getLogger().level <= logging.DEBUG
 
@@ -50,10 +50,10 @@ class ProgPlatform:
 
 	def check_clean(self, force_cleanup = False):
 		if force_cleanup:
-			logging.info(f"forcing cleanup on repository")
+			logging.debug(f"forcing cleanup on repository")
 			self._call_git_cmd(["checkout", "--", self.progplat_path], "couldn't reset progplatform")
 			self._call_git_cmd(["clean", "-fdX", self.progplat_path],  "couldn't clean progplatform")
-		logging.info(f"checking whether git repository is clean")
+		logging.debug(f"checking whether git repository is clean")
 		is_clean = self._call_git_cmd_get_output(["status", "--porcelain"], "error checking for clean repo") == b''
 		if not is_clean:
 			raise Exception(f"check your working directory \"{self.progplat_path}\". either commit and push your changes or just clean it.")
@@ -74,7 +74,7 @@ class ProgPlatform:
 		exp_type = exp.get_exp_type()
 		assert exp_type == "exps2" or exp_type == "exps1"
 
-		logging.info(f"reading input files")
+		logging.debug(f"reading input files")
 		code_asm = exp.get_code()
 		input1   = exp.get_input_file("input1.json")
 		if exp_type == "exps2":

@@ -6,6 +6,10 @@ import experiment
 import progplatform
 from helpers import *
 
+def get_experiment_run_id(progplat, board_type):
+	progplat_hash = progplat.get_commit_hash()
+	return f"{progplat_hash}_{board_type}"
+
 def run_experiment(exp_id, progplat = None, board_type = None, branchname = None, conn_mode = None, force_cleanup = False, force_results = False, no_cleanup = False, printeval = False, ignoremismatch = False):
 	if progplat == None:
 		progplat = progplatform.get_embexp_ProgPlatform(None)
@@ -70,11 +74,7 @@ def run_experiment(exp_id, progplat = None, board_type = None, branchname = None
 		outputs = []
 		outputs.append(("output_uart.log", uartlogdata_bin))
 		outputs.append(("result.json",     result.encode('utf-8')))
-		nomismatches = exp.write_results(progplat.get_commit_hash(), board_type, outputs, force_results)
-
-		if not nomismatches:
-			if not ignoremismatch:
-				raise Exception("the output files differ")
+		nomismatches = exp.write_results(get_experiment_run_id(progplat, board_type), outputs, force_results)
 
 	finally:
 		if not no_cleanup:
@@ -98,6 +98,9 @@ def run_experiment(exp_id, progplat = None, board_type = None, branchname = None
 			print("=" * 40)
 		else:
 			raise Exception(f"unknown experiment type: {exp_type}")
+
+	if not nomismatches and not force_results and not ignoremismatch:
+		raise Exception("the output files differ")
 
 	return result_val
 
