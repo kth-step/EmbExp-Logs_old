@@ -113,17 +113,43 @@ def check_uart_experiment_base(lines):
 
 def parse_uart_single_cache_experiment(lines):
 	lines = check_uart_experiment_base(lines)
+	# has it been an exception on the board?
 	if isinstance(lines, str):
 		return lines
 
 	sepline = "----"
-	funcline = "print_cache_full"
+	funcline_full = "print_cache_full"
+	funcline_simp = "print_cache_valid"
+	assert len(lines) >= 4
 	assert lines[0] == sepline
-	assert lines[1] == funcline
+	assert lines[1] == funcline_full or lines[1] == funcline_simp
+	is_func_full = lines[1] == funcline_full
 	assert lines[2] == sepline
 	assert lines[-1] == sepline
 	lines = lines[3:-1]
-	assert len(lines) % (1 + 4*4) == 0
+
+	if is_func_full:
+		return parse_uart_single_cache_experiment_full(lines)
+	else:
+		return parse_uart_single_cache_experiment_simp(lines)
+
+def parse_uart_single_cache_experiment_simp(lines):
+	sets = []
+	for s in range(0,128):
+		sets.append({"set": s, "lines": []})
+	for line in lines:
+		parts = line.split("::")
+		s = int(parts[0].strip())
+		l = int(parts[1].strip())
+		d = parts[2].split(":")
+
+		field = d[0].strip()
+		data  = d[1].strip()
+		l_val = {"line": l, "valid": True, field: data}
+		sets[s]["lines"].append(l_val)
+	return sets
+
+def parse_uart_single_cache_experiment_full(lines):
 	s = 0
 	sets = []
 	while len(lines) > 0:
@@ -133,18 +159,20 @@ def parse_uart_single_cache_experiment(lines):
 		l = 0
 		while len(lines) > 0 and not lines[0].startswith("set"):
 			assert lines[0] == f"line={l}"
-			tag   = lines[1]
-			valid = lines[2]
-			if valid == " valid 1":
-				valid = True
-			elif valid == " valid 0":
-				valid = False
-			else:
-				raise Exception("valid line is wrong")
-			regs  = lines[3]
-			l_val = {"line": l, "tag": tag, "valid": valid, "regs": regs}
+			lines = lines[1:]
+			l_val = {"line": l}
+			while len(lines) > 0 and not lines[0].startswith("set") and not lines[0].startswith("line"):
+				fielddata = lines[0].split(":")
+				lines = lines[1:]
+				field = fielddata[0].strip()
+				data  = fielddata[1].strip()
+
+				if field == "valid":
+					assert data == "0" or data == "1"
+					data = data == "1"
+				assert not field in l_val
+				l_val[field] = data
 			s_val["lines"].append(l_val)
-			lines = lines[4:]
 			l += 1
 		sets.append(s_val)
 		s += 1

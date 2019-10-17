@@ -61,7 +61,9 @@ def run_experiment(exp_id, progplat = None, board_type = None, branchname = None
 			# remove regs field
 			for s_val in sets_clean:
 				for l_val in s_val["lines"]:
-					l_val.pop("regs")
+					for k in list(l_val.keys()):
+						if not k in ["line", "valid", "tag"]:
+							l_val.pop(k)
 			result_val = sets_clean
 		else:
 			raise Exception(f"unknown experiment type: {exp_type}")
