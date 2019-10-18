@@ -69,7 +69,7 @@ class ProgPlatform:
 		with open(os.path.join(self.progplat_path, f"inc/experiment/{filename}"), "w+") as f:
 			f.write(contents)
 
-	def configure_experiment(self, board_type, exp):
+	def configure_experiment(self, board_type, exp, num_mul_runs = 10):
 		assert self._writable
 		exp_type = exp.get_exp_type()
 		assert exp_type == "exps2" or exp_type == "exps1"
@@ -81,14 +81,15 @@ class ProgPlatform:
 			input2   = exp.get_input_file("input2.json")
 
 		config_text = ""
-		config_text += f"PROGPLAT_ARCH        ={exp.get_exp_arch()}\n"
-		config_text += f"PROGPLAT_TYPE        ={exp.get_exp_type()}\n"
-		config_text += f"PROGPLAT_PARAMS      ={exp.get_exp_params_id()}\n"
-		config_text += f"PROGPLAT_BOARD       ={board_type}\n"
+		config_text += f"PROGPLAT_ARCH         ={exp.get_exp_arch()}\n"
+		config_text += f"PROGPLAT_TYPE         ={exp.get_exp_type()}\n"
+		config_text += f"PROGPLAT_PARAMS       ={exp.get_exp_params_id()}\n"
+		config_text += f"PROGPLAT_BOARD        ={board_type}\n"
 		if exp_type == "exps2":
-			config_text += f"PROGPLAT_RUN_TIMEOUT =6\n"
+			config_text += f"PROGPLAT_RUN_TIMEOUT  =6\n"
 		elif exp_type == "exps1":
-			config_text += f"PROGPLAT_RUN_TIMEOUT =20\n"
+			config_text += f"PROGPLAT_RUN_TIMEOUT  =20\n"
+		config_text += f"__PROGPLAT_MUL_RUNS__ ={num_mul_runs}\n"
 		with open(os.path.join(self.progplat_path, f"Makefile.config"), "w+") as f:
 			f.write(config_text)
 

@@ -1,6 +1,7 @@
 
 import sys
 import os
+import logging
 import subprocess
 
 # helpers
@@ -120,13 +121,20 @@ def parse_uart_single_cache_experiment(lines):
 	sepline = "----"
 	funcline_full = "print_cache_full"
 	funcline_simp = "print_cache_valid"
-	assert len(lines) >= 4
+	inconclusive_pre = "INCONCLUSIVE: "
+	assert len(lines) >= 3
 	assert lines[0] == sepline
 	assert lines[1] == funcline_full or lines[1] == funcline_simp
 	is_func_full = lines[1] == funcline_full
 	assert lines[2] == sepline
+	lines = lines[3:]
+	assert len(lines) >= 1
+	if lines[-1].startswith(inconclusive_pre):
+		logging.error(f"special result >>> {lines[-1]}")
+		lines = lines[:-1]
+	assert len(lines) >= 1
 	assert lines[-1] == sepline
-	lines = lines[3:-1]
+	lines = lines[:-1]
 
 	if is_func_full:
 		return parse_uart_single_cache_experiment_full(lines)
@@ -186,10 +194,16 @@ def eval_uart_pair_cache_experiment(lines):
 
 	resultline_true  = "RESULT: EQUAL"
 	resultline_false = "RESULT: UNEQUAL"
+	resultline_inconclusive_pre = "INCONCLUSIVE: "
 
-	if lines[0] == resultline_true:
+	resultline = lines[0]
+
+	if resultline == resultline_true:
 		return True
-	elif lines[0] == resultline_false:
+	elif resultline == resultline_false:
+		return False
+	elif resultline.startswith(resultline_inconclusive_pre):
+		logging.error(f"special result >>> {resultline}")
 		return False
 	else:
 		raise Exception(f"the result line is not as expected: {lines[0]}")
