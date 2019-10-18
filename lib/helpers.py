@@ -204,7 +204,7 @@ def eval_uart_pair_cache_experiment(lines):
 		return False
 	elif resultline.startswith(resultline_inconclusive_pre):
 		logging.error(f"special result >>> {resultline}")
-		return False
+		return f"special :::: {resultline}"
 	else:
 		raise Exception(f"the result line is not as expected: {lines[0]}")
 
