@@ -20,6 +20,7 @@ parser.add_argument("-pp", "--print_progs",           help="print the list of pr
 
 parser.add_argument("-pe", "--print_examples",        help="print the list of validation examples", action="store_true")
 parser.add_argument("-pc", "--print_counterexamples", help="print the list of counterexamples", action="store_true")
+parser.add_argument("-pi", "--print_inconclusive",    help="print the list of inconclusive examples", action="store_true")
 parser.add_argument("-po", "--print_others",          help="print the list of unclear examples", action="store_true")
 
 parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
@@ -91,8 +92,8 @@ for et in expts:
 
 # collect all programs and experiments
 logging.info("collecting all programs and experiments")
-print(f"total number of programs = {len(progs)}")
-print(f"total number of experiments = {len(exps)}")
+print(f"n_progs = {len(progs)}")
+print(f"n_exps  = {len(exps)}")
 print()
 print()
 
@@ -101,6 +102,7 @@ e_notrun = []
 e_incomplete = []
 e_examples = []
 e_cexamples = []
+e_inconclusive = []
 e_others = []
 for exp_id in exps:
 	parts = exp_id.split("/")
@@ -124,16 +126,19 @@ for exp_id in exps:
 		e_examples.append(exp_id)
 	elif result == "false":
 		e_cexamples.append(exp_id)
+	elif result.startswith("\"special :::: INCONCLUSIVE: "):
+		e_inconclusive.append(exp_id)
 	else:
 		e_others.append(exp_id)
 
-print(f"n_notrun = {len(e_notrun)}")
+print(f"n_notrun     = {len(e_notrun)}")
 print(f"n_incomplete = {len(e_incomplete)}")
 print()
 
-print(f"n_others = {len(e_others)}")
-print(f"n_examples = {len(e_examples)}")
-print(f"n_cexamples = {len(e_cexamples)}")
+print(f"n_others       = {len(e_others)}")
+print(f"n_inconclusive = {len(e_inconclusive)}")
+print(f"n_examples     = {len(e_examples)}")
+print(f"n_cexamples    = {len(e_cexamples)}")
 print()
 print()
 
@@ -157,6 +162,14 @@ if args.print_counterexamples:
 	print("validation counterexamples:")
 	print("=" * 40)
 	for exp_id in e_cexamples:
+		print(exp_id)
+	print()
+	print()
+
+if args.print_inconclusive:
+	print("inconclusive examples:")
+	print("=" * 40)
+	for exp_id in e_inconclusive:
 		print(exp_id)
 	print()
 	print()
