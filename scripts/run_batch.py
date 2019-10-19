@@ -63,7 +63,7 @@ someSuccessful = False
 for exp_id in exp_list:
 	print(f"===>>> {exp_id}")
 	try:
-		exp_runner.run_experiment(exp_id, progplat, board_type, None, args.conn_mode, False, args.force_results)
+		exp_runner.run_experiment(exp_id, progplat, board_type, conn_mode=args.conn_mode, force_results=args.force_results)
 		someSuccessful = True
 	except KeyboardInterrupt:
 		raise

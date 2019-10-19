@@ -10,7 +10,7 @@ def get_experiment_run_id(progplat, board_type):
 	progplat_hash = progplat.get_commit_hash()
 	return f"{progplat_hash}_{board_type}"
 
-def run_experiment(exp_id, progplat = None, board_type = None, branchname = None, conn_mode = None, force_cleanup = False, force_results = False, no_cleanup = False, printeval = False, ignoremismatch = False, write_results = True):
+def run_experiment(exp_id, progplat = None, board_type = None, branchname = None, conn_mode = None, force_cleanup = None, force_results = False, no_cleanup = False, printeval = False, ignoremismatch = False, write_results = True):
 	logging.info(f"{(exp_id, progplat, board_type, branchname, conn_mode, force_cleanup, force_results, no_cleanup, printeval, ignoremismatch, write_results)}")
 	if progplat == None:
 		progplat = progplatform.get_embexp_ProgPlatform(None)
@@ -89,7 +89,7 @@ def run_experiment(exp_id, progplat = None, board_type = None, branchname = None
 			# ======================================
 			logging.info(f"cleaning embexp-progplatform")
 			# make progplatform clean to prepare the next round
-			progplat.check_clean(True)
+			progplat.check_clean("ignored" if force_cleanup == "ignored" else "all")
 
 	if printeval:
 		# the last line is a simple result line, that can be interpreted by another program, if exps2

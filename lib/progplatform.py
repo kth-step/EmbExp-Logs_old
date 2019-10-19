@@ -48,12 +48,27 @@ class ProgPlatform:
 	def _call_make_cmd(self, makecmdl, error_msg):
 		call_cmd(["make", "-C", self.progplat_path] + makecmdl, error_msg, self.show_outputs, self.show_outputs)
 
-	def check_clean(self, force_cleanup = False):
-		if force_cleanup:
-			logging.debug(f"forcing cleanup on repository")
-			self._call_git_cmd(["checkout", "--", self.progplat_path], "couldn't reset progplatform")
+	def check_clean(self, force_cleanup = None):
+		if force_cleanup == "ignored":
+			logging.debug("cleaning only ignored files/directories in the repository")
 			self._call_git_cmd(["clean", "-fdX", self.progplat_path],  "couldn't clean progplatform")
-		logging.debug(f"checking whether git repository is clean")
+			logging.debug("checking whether there are no ignored files left")
+			lines = self._call_git_cmd_get_output(["status", "--ignored", "--porcelain"], "error checking for clean repo").split(b'\n')
+			is_clean = all(map(lambda x: not x.startswith(b'!!'), lines))
+			if not is_clean:
+				raise Exception("something went wrong with cleaning, there are still ignored files left")
+			self._writable = True
+			return
+		elif force_cleanup == "all":
+			logging.debug("forcing full reset and cleanup of repository")
+			self._call_git_cmd(["checkout", "--", self.progplat_path], "couldn't reset progplatform")
+			self._call_git_cmd(["clean", "-fd",   self.progplat_path], "couldn't clean progplatform")
+			self._call_git_cmd(["clean", "-fdX",  self.progplat_path], "couldn't clean (ignored) progplatform")
+		elif force_cleanup == None:
+			logging.debug("no cleanup of repository")
+		else:
+			raise Exception(f"unknown option for force_cleanup: {force_cleanup}")
+		logging.debug("checking whether git repository is clean")
 		is_clean = self._call_git_cmd_get_output(["status", "--porcelain"], "error checking for clean repo") == b''
 		if not is_clean:
 			raise Exception(f"check your working directory \"{self.progplat_path}\". either commit and push your changes or just clean it.")
