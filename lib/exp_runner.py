@@ -11,6 +11,7 @@ def get_experiment_run_id(progplat, board_type):
 	return f"{progplat_hash}_{board_type}"
 
 def run_experiment(exp_id, progplat = None, board_type = None, branchname = None, conn_mode = None, force_cleanup = False, force_results = False, no_cleanup = False, printeval = False, ignoremismatch = False, write_results = True):
+	logging.info(f"{(exp_id, progplat, board_type, branchname, conn_mode, force_cleanup, force_results, no_cleanup, printeval, ignoremismatch, write_results)}")
 	if progplat == None:
 		progplat = progplatform.get_embexp_ProgPlatform(None)
 

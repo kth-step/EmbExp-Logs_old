@@ -8,6 +8,8 @@ from helpers import *
 def get_exps_from_stdin():
 	exp_list = []
 	for line in sys.stdin:
+		if line.startswith("#"):
+			continue
 		exp_list.append(line.strip())
 
 	for exp_id in exp_list:

@@ -65,8 +65,11 @@ for exp_id in exp_list:
 	try:
 		exp_runner.run_experiment(exp_id, progplat, board_type, None, args.conn_mode, False, args.force_results)
 		someSuccessful = True
+	except KeyboardInterrupt:
+		raise
 	except:
 		successful = False
+		logging.warning("- unsuccessful")
 
 print()
 print("="*40)
