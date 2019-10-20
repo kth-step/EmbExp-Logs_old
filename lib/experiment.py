@@ -61,6 +61,29 @@ class Experiment:
 		with open(self.get_path(filename, True), "r") as f:
 			return json.load(f)
 
+	def get_exp_gens(self):
+		prefix = "gen."
+		gens = []
+		for f in os.listdir(self.get_path(".")):
+			if os.path.isfile(self.get_path(f)) and f.startswith(prefix):
+				gens.append(f)
+		return gens
+
+	def get_prog_gens(self):
+		prefix = "gen."
+		gens = []
+		for f in os.listdir(self.get_path(".")):
+			if os.path.isfile(self.get_path(f)) and f.startswith(prefix):
+				gens.append(f)
+		return gens
+
+	def get_run_ids(self):
+		prefix = "run."
+		ids = []
+		for d in os.listdir(self.get_path(".")):
+			if os.path.isdir(self.get_path(d)) and d.startswith(prefix):
+				ids.append(d[len(prefix):])
+		return ids
 
 	def is_valid_experiment(self):
 		filespresent = True
@@ -97,6 +120,20 @@ class Experiment:
 		return nomismatches
 
 	def print(self):
+		print("generation info:")
+		print("-"*40)
+		for g in self.get_exp_gens():
+			print(f"- {g}")
+		print()
+
+		print("runs:")
+		print("-"*40)
+		for g in self.get_run_ids():
+			print(f"- {g}")
+		print()
+
+		print("configuration:")
+		print("-"*40)
 		assert self.get_exp_type() == "exps2" or self.get_exp_type() == "exps1"
 
 		# read input files
@@ -118,4 +155,10 @@ class Experiment:
 		if self.get_exp_type() == "exps2":
 			print(gen_readable(input2))
 			print("="*20)
+
+		print("prog generation info:")
+		print("-"*40)
+		for g in self.get_prog_gens():
+			print(f"- {g}")
+		print()
 
