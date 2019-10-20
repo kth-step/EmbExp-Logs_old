@@ -52,9 +52,12 @@ class Experiment:
 		with open(self.get_path(f"code.hash", True), "r") as f:
 			return f.read().strip()
 
-	def get_code(self):
+	def get_prog_path(self, path, needfile = False):
 		prog_id = self.get_prog_id()
-		with open(self.get_path(f"../../../progs/{prog_id}/code.asm", True), "r") as f:
+		return self.get_path(f"../../../progs/{prog_id}/{path}", needfile)
+
+	def get_code(self):
+		with open(self.get_prog_path("code.asm", True), "r") as f:
 			return f.read()
 
 	def get_input_file(self, filename):
@@ -72,8 +75,8 @@ class Experiment:
 	def get_prog_gens(self):
 		prefix = "gen."
 		gens = []
-		for f in os.listdir(self.get_path(".")):
-			if os.path.isfile(self.get_path(f)) and f.startswith(prefix):
+		for f in os.listdir(self.get_prog_path(".")):
+			if os.path.isfile(self.get_prog_path(f)) and f.startswith(prefix):
 				gens.append(f)
 		return gens
 
@@ -90,9 +93,7 @@ class Experiment:
 		filenames = ["code.hash", "input1.json"] + (["input2.json"] if self.get_exp_type() == "exps2" else [])
 		for filename in filenames:
 			filespresent = filespresent and os.path.isfile(self.get_path(filename))
-		with open(self.get_path("code.hash", True), "r") as f:
-			codehash = f.read().strip()
-		filespresent = filespresent and os.path.isfile(self.get_path(f"../../../progs/{codehash}/code.asm"))
+		filespresent = filespresent and os.path.isfile(self.get_prog_path("code.asm"))
 		return filespresent
 
 	def is_incomplete_experiment(self, run_id):
