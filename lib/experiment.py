@@ -5,6 +5,11 @@ import json
 
 from helpers import *
 
+def get_run_id(progplat_hash, board_type):
+	return f"{progplat_hash}.{board_type}"
+def get_run_dir(run_id):
+	return f"run.{run_id}"
+
 class Experiment:
 	def __init__(self, exp_id):
 		assert len(exp_id.split('/')) == 4
@@ -67,15 +72,15 @@ class Experiment:
 		filespresent = filespresent and os.path.isfile(self.get_path(f"../../../progs/{codehash}/code.asm"))
 		return filespresent
 
-	def is_incomplete_experiment(self, progplat_hash, board_type):
+	def is_incomplete_experiment(self, run_id):
 		is_complete = True
 		# TODO: these filenames are specific to a certain type of experiment
 		for filename in ["output_uart.log", "result.json"]:
-			is_complete = is_complete and os.path.isfile(self.get_path(f"{progplat_hash}_{board_type}/{filename}"))
+			is_complete = is_complete and os.path.isfile(self.get_path(f"{get_run_dir(run_id)}/{filename}"))
 		return not is_complete
 
 	def write_results(self, run_id, outputs, force_results = False):
-		exp_dir_results = self.get_path(run_id)
+		exp_dir_results = self.get_path(get_run_dir(run_id))
 		# create the directory
 		call_cmd(["mkdir", "-p", exp_dir_results], "could not create directory")
 		nomismatches = True

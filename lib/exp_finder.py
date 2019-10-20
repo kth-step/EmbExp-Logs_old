@@ -38,7 +38,8 @@ def get_exps(exp_class, auto_mode = None, progplat_hash = None, board_type = Non
 	elif auto_mode == "fix":
 		assert progplat_hash != None
 		assert board_type != None
-		exp_list = filter(lambda x: x.is_incomplete_experiment(progplat_hash, board_type), exp_list)
+		run_id = experiment.get_run_id(progplat_hash, board_type)
+		exp_list = filter(lambda x: x.is_incomplete_experiment(run_id), exp_list)
 	else:
 		raise Exception(f"unknown auto_mode: {auto_mode}")
 

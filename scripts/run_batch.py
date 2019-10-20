@@ -75,7 +75,7 @@ print()
 print("="*40)
 print("="*40)
 if (someSuccessful):
-	print(f"run_id = {exp_runner.get_experiment_run_id(progplat, board_type)}")
+	print(f"run_id = {progplat.get_configured_run_id()}")
 print("="*40)
 if successful:
 	print("ALL EXPERIMENTS COMPLETED")

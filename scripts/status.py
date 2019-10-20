@@ -8,13 +8,14 @@ import argparse
 import logging
 
 import progplatform
+import experiment
 from helpers import *
 from exp_runner import *
 
 # parse arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("--arch_id",       help="architecture id, default: arm8")
-parser.add_argument("-ri", "--run_id", help="id of run made up of ProgPlatform commit hash and board type, for example: 13700076ab79095f15468f0c489fa587ac225626_rpi3")
+parser.add_argument("-ri", "--run_id", help="id of run made up of ProgPlatform commit hash and board type, for example: 13700076ab79095f15468f0c489fa587ac225626.rpi3")
 
 parser.add_argument("-pp", "--print_progs",           help="print the list of programs", action="store_true")
 
@@ -43,7 +44,10 @@ if run_id == None:
 	board_type = "rpi3"
 	assert arch_id == "arm8"
 	progplat_hash = progplatform.get_embexp_ProgPlatform(None).get_branch_commit_hash(branchname)
-	run_id = f"{progplat_hash}_{board_type}"
+	run_id = experiment.get_run_id(progplat_hash, board_type)
+
+print(f"run_id = {run_id}")
+print()
 
 def collect_structure(startpath):
 	struct = {"dirs": {}, "files": []}
@@ -110,17 +114,22 @@ for exp_id in exps:
 	assert parts[0] == arch_id
 	s = arch_structure[parts[1]][parts[2]][parts[3]]
 	# did it run?
-	if not run_id in s:
+	run_dirname = experiment.get_run_dir(run_id)
+	if not run_dirname in s:
+		# TODO: remove this later, is only here for legacy compatibility
+		if run_id in s:
+			run_dirname = run_id
+			break
 		e_notrun.append(exp_id)
 		continue
-	r = s[run_id]
+	r = s[run_dirname]
 	# is it complete?
 	resultfile = "result.json"
 	if not resultfile in r:
 		e_incomplete.append(exp_id)
 		continue
 	# what's the result?
-	with open(get_logs_path(exp_id) + f"/{run_id}/{resultfile}", "r") as f:
+	with open(get_logs_path(exp_id) + f"/{run_dirname}/{resultfile}", "r") as f:
 		result = f.read()
 	if result == "true":
 		e_examples.append(exp_id)

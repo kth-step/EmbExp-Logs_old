@@ -2,6 +2,7 @@
 import logging
 import os
 
+import experiment
 from helpers import *
 
 def _autodetect_embexp_path(embexp_arg = None):
@@ -24,8 +25,11 @@ class ProgPlatform:
 		self.progplat_path = embexp_path = os.path.abspath(progplat_path)
 		assert os.path.isdir(self.progplat_path)
 		logging.debug(f"using {self.progplat_path}")
-		self._writable = False
+
 		self.show_outputs = logging.getLogger().level <= logging.DEBUG
+
+		self._writable = False
+		self.board_type = None
 
 	def get_commit_hash(self):
 		progplat_hash = self._call_git_cmd_get_output(["rev-parse", "HEAD"], "coudln't get commit hash")
@@ -35,6 +39,10 @@ class ProgPlatform:
 		progplat_hash = self._call_git_cmd_get_output(["rev-parse", branchname], "coudln't get commit hash")
 		return progplat_hash.decode("ascii").strip()
 
+	def get_configured_run_id(self):
+		assert self.board_type != None
+		progplat_hash = self.get_commit_hash()
+		return experiment.get_run_id(progplat_hash, self.board_type)
 
 	def _get_git_call(self):
 		return ["git", "--git-dir", f"{self.progplat_path}/.git", "--work-tree", self.progplat_path]
@@ -88,6 +96,8 @@ class ProgPlatform:
 		assert self._writable
 		exp_type = exp.get_exp_type()
 		assert exp_type == "exps2" or exp_type == "exps1"
+
+		self.board_type = board_type
 
 		logging.debug(f"reading input files")
 		code_asm = exp.get_code()

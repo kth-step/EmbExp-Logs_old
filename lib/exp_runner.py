@@ -6,10 +6,6 @@ import experiment
 import progplatform
 from helpers import *
 
-def get_experiment_run_id(progplat, board_type):
-	progplat_hash = progplat.get_commit_hash()
-	return f"{progplat_hash}_{board_type}"
-
 def run_experiment(exp_id, progplat = None, board_type = None, branchname = None, conn_mode = None, force_cleanup = None, force_results = False, no_cleanup = False, printeval = False, ignoremismatch = False, write_results = True):
 	logging.info(f"{(exp_id, progplat, board_type, branchname, conn_mode, force_cleanup, force_results, no_cleanup, printeval, ignoremismatch, write_results)}")
 	if progplat == None:
@@ -44,6 +40,7 @@ def run_experiment(exp_id, progplat = None, board_type = None, branchname = None
 		# ======================================
 		logging.info(f"generating experiment code")
 		progplat.configure_experiment(board_type, exp)
+		run_id = progplat.get_configured_run_id()
 
 		# run the experiment
 		# ======================================
@@ -81,7 +78,7 @@ def run_experiment(exp_id, progplat = None, board_type = None, branchname = None
 			outputs = []
 			outputs.append(("output_uart.log", uartlogdata_bin))
 			outputs.append(("result.json",     result.encode('utf-8')))
-			nomismatches = exp.write_results(get_experiment_run_id(progplat, board_type), outputs, force_results)
+			nomismatches = exp.write_results(run_id, outputs, force_results)
 
 	finally:
 		if not no_cleanup:
