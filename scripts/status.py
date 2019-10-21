@@ -49,6 +49,7 @@ if run_id == None:
 print(f"run_id = {run_id}")
 print()
 
+# all of this should be moved to library file experiment or experiments or similar
 def collect_structure(startpath):
 	struct = {"dirs": {}, "files": []}
 
@@ -94,9 +95,13 @@ for et in expts:
 		for ei in structure_dirs(arch_structure[et][et2]):
 			exps.append(f"{arch_id}/{et}/{et2}/{ei}")
 
+# filter out the valid experiments
+exps = map(lambda x: experiment.Experiment(x), exps)
+exps = list(filter(lambda exp: exp.is_valid_experiment(), exps))
+
 # collect all programs and experiments
 logging.info("collecting all programs and experiments")
-print(f"n_progs = {len(progs)}")
+print(f"n_progs = {len(progs)} (this number is only based on the number of progs subdirectories)")
 print(f"n_exps  = {len(exps)}")
 print()
 print()
@@ -108,27 +113,31 @@ e_examples = []
 e_cexamples = []
 e_inconclusive = []
 e_others = []
-for exp_id in exps:
-	parts = exp_id.split("/")
-	assert len(parts) == 4
-	assert parts[0] == arch_id
-	s = arch_structure[parts[1]][parts[2]][parts[3]]
+for exp in exps:
+	assert exp.get_exp_arch() == arch_id
+	s = arch_structure[exp.get_exp_type()][exp.get_exp_params_id()][exp.get_exp_data_id()]
+	exp_id = exp.get_exp_id()
+
 	# did it run?
 	run_dirname = experiment.get_run_dir(run_id)
 	if not run_dirname in s:
-		# TODO: remove this later, is only here for legacy compatibility
-		if run_id in s:
-			run_dirname = run_id
-			break
 		e_notrun.append(exp_id)
 		continue
 	r = s[run_dirname]
+
 	# is it complete?
+	if exp.is_incomplete_experiment(run_id):
+		continue
+
+	# this is unnecessary
 	resultfile = "result.json"
 	if not resultfile in r:
-		e_incomplete.append(exp_id)
+		e_others.append(exp_id)
+		logging.error("this should not happen, considering experiment {exp_id} as \"other\"")
 		continue
+
 	# what's the result?
+	# TODO: better use json here for parsing the result file
 	with open(get_logs_path(exp_id) + f"/{run_dirname}/{resultfile}", "r") as f:
 		result = f.read()
 	if result == "true":

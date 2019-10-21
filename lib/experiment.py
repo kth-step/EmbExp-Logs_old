@@ -48,6 +48,9 @@ class Experiment:
 	def get_exp_params_id(self):
 		return os.path.basename(os.path.abspath(self.get_path("..")))
 
+	def get_exp_data_id(self):
+		return os.path.basename(os.path.abspath(self.get_path(".")))
+
 	def get_prog_id(self):
 		with open(self.get_path(f"code.hash", True), "r") as f:
 			return f.read().strip()
@@ -89,12 +92,13 @@ class Experiment:
 		return ids
 
 	def is_valid_experiment(self):
-		filespresent = True
 		filenames = ["code.hash", "input1.json"] + (["input2.json"] if self.get_exp_type() == "exps2" else [])
 		for filename in filenames:
-			filespresent = filespresent and os.path.isfile(self.get_path(filename))
-		filespresent = filespresent and os.path.isfile(self.get_prog_path("code.asm"))
-		return filespresent
+			if not os.path.isfile(self.get_path(filename)):
+				return False
+		if not os.path.isfile(self.get_prog_path("code.asm")):
+			return False
+		return True
 
 	def is_incomplete_experiment(self, run_id):
 		is_complete = True
