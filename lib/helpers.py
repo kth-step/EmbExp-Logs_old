@@ -82,11 +82,11 @@ def gen_readable(regmap):
 		val = regmap[reg]
 		assert val < 2**64
 		assert val >= 0
-		val_str = val.to_bytes(8, byteorder='big').hex()
-		t_str = (val >> 13).to_bytes(7, byteorder='big').hex()
-		s_str = ((val >>  6) & 0x7F).to_bytes(1, byteorder='big').hex()
-		o_str = ((val >>  0) & 0x3F).to_bytes(1, byteorder='big').hex()
-		s += f"{reg.ljust(5)} = {val_str} ::: (t={t_str}, s={s_str}, o={o_str})\n"
+		val_str = "0x" + val.to_bytes(8, byteorder='big').hex()
+		ts_str  = "0x" + ((val >>  0) & (0xFFFFFFFFFFFFFFFF - 0x3F)).to_bytes(8, byteorder='big').hex()
+		s_str   = "0x" + ((val >>  6) & 0x7F).to_bytes(1, byteorder='big').hex()
+		o_str   = "0x" + ((val >>  0) & 0x3F).to_bytes(1, byteorder='big').hex()
+		s += f"{reg.ljust(5)} = {val_str} ::: (ts={ts_str}, s={s_str}, o={o_str})\n"
 	return s
 
 def check_uart_experiment_base(lines):
