@@ -85,7 +85,9 @@ class ProgPlatform:
 	def change_branch(self, branchname):
 		assert self._writable
 		self._call_git_cmd(["checkout", branchname], f"couldn't checkout branch {branchname}")
-		self._call_git_cmd(["clean", "-fdX", "."], "couldn't clean progplatform")
+		self._call_git_cmd(["clean", "-fd",  self.progplat_path], "couldn't clean progplatform")
+		# this is redundant I guess
+		self._call_git_cmd(["clean", "-fdX", self.progplat_path], "couldn't clean (ignored) progplatform")
 
 	def write_experiment_file(self, filename, contents):
 		assert self._writable
