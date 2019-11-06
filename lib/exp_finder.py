@@ -51,3 +51,30 @@ def get_exps(exp_class, auto_mode = None, progplat_hash = None, board_type = Non
 
 	return list(exp_list)
 
+
+class ExpsIter:
+	def __init__(self, exp_class, auto_mode, progplat_hash, board_type = None):
+		assert auto_mode == "fix"
+		self.exp_class = exp_class
+		self.auto_mode = auto_mode
+		self.progplat_hash = progplat_hash
+		self.board_type = board_type
+		self.update_exps_list()
+
+	def update_exps_list(self):
+		logging.warning("generating new exp_list")
+		exp_list = get_exps(self.exp_class, self.auto_mode, self.progplat_hash, self.board_type)
+		logging.warning(f"generated {len(exp_list)}")
+		self._exp_list_iter = iter(exp_list)
+
+	def __iter__(self):
+		return self
+
+	def __next__(self):
+		try:
+			next_exp = self._exp_list_iter.__next__()
+		except StopIteration:
+			self.update_exps_list()
+			next_exp = self._exp_list_iter.__next__()
+		return next_exp
+

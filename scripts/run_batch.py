@@ -47,20 +47,23 @@ auto_mode = "fix" if args.auto_mode == None else args.auto_mode
 logging.info(f"selecting experiments")
 
 if not do_auto:
-	exp_list = exp_finder.get_exps_from_stdin()
+	exp_iter = exp_finder.get_exps_from_stdin()
 else:
 	assert board_type == "rpi3"
 
 	progplat_hash = progplat.get_branch_commit_hash("master")
 
-	exp_list = exp_finder.get_exps(exp_class, auto_mode, progplat_hash, board_type)
+	if auto_mode == "fix":
+		exp_iter = exp_finder.ExpsIter(exp_class, auto_mode, progplat_hash, board_type)
+	else:
+		exp_iter = exp_finder.get_exps(exp_class, auto_mode, progplat_hash, board_type)
 
 # launch the runner script for each experiment in the list
 # ======================================
 logging.info(f"running all selected experiments")
 successful = True
 someSuccessful = False
-for exp_id in exp_list:
+for exp_id in exp_iter:
 	print(f"===>>> {exp_id}")
 	try:
 		exp_runner.run_experiment(exp_id, progplat, board_type, conn_mode=args.conn_mode, force_results=args.force_results)
