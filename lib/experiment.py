@@ -96,6 +96,13 @@ class Experiment:
 		for filename in filenames:
 			if not os.path.isfile(self.get_path(filename)):
 				return False
+			if filename.endswith(".json"):
+				with open(self.get_path(filename, True), "r") as f:
+					try:
+						if not isinstance(json.load(f), dict):
+							return False
+					except:
+						return False
 		if not os.path.isfile(self.get_prog_path("code.asm")):
 			return False
 		return True
