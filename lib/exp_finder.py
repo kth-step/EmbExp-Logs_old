@@ -1,6 +1,7 @@
 
 import sys
 import logging
+import time
 
 import experiment
 from helpers import *
@@ -53,18 +54,28 @@ def get_exps(exp_class, auto_mode = None, progplat_hash = None, board_type = Non
 
 
 class ExpsIter:
-	def __init__(self, exp_class, auto_mode, progplat_hash, board_type = None):
+	def __init__(self, exp_class, auto_mode, progplat_hash, board_type = None, poll_max_rounds = 5, poll_round_time = 60):
 		assert auto_mode == "fix"
 		self.exp_class = exp_class
 		self.auto_mode = auto_mode
 		self.progplat_hash = progplat_hash
 		self.board_type = board_type
-		self.update_exps_list()
+
+		self.poll_round_time = poll_round_time
+		self.poll_max_rounds = poll_max_rounds
+		if self.poll_max_rounds < 1:
+			self.poll_max_rounds = 1
+		self._exp_list_iter = iter([])
 
 	def update_exps_list(self):
-		logging.warning("generating new exp_list")
-		exp_list = get_exps(self.exp_class, self.auto_mode, self.progplat_hash, self.board_type)
-		logging.warning(f"generated {len(exp_list)}")
+		for i in range(self.poll_max_rounds):
+			if i > 0:
+				time.sleep(self.poll_round_time)
+			logging.warning("generating new exp_list")
+			exp_list = get_exps(self.exp_class, self.auto_mode, self.progplat_hash, self.board_type)
+			logging.warning(f"generated {len(exp_list)}")
+			if len(exp_list) > 0:
+				break
 		self._exp_list_iter = iter(exp_list)
 
 	def __iter__(self):
