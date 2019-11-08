@@ -91,7 +91,7 @@ class ProgPlatform:
 
 	def write_experiment_file(self, filename, contents):
 		assert self._writable
-		with open(os.path.join(self.progplat_path, f"inc/experiment/{filename}"), "w+") as f:
+		with open(os.path.join(self.progplat_path, f"all/inc/experiment/{filename}"), "w+") as f:
 			f.write(contents)
 
 	def configure_experiment(self, board_type, exp, num_mul_runs = 10):
@@ -120,10 +120,10 @@ class ProgPlatform:
 		with open(os.path.join(self.progplat_path, f"Makefile.config"), "w+") as f:
 			f.write(config_text)
 
-		self.write_experiment_file("cache_run_input.h", code_asm)
-		self.write_experiment_file("cache_run_input_setup1.h", gen_input_code(input1))
+		self.write_experiment_file("asm.h", code_asm)
+		self.write_experiment_file("asm_setup1.h", gen_input_code(input1))
 		if exp_type == "exps2":
-			self.write_experiment_file("cache_run_input_setup2.h", gen_input_code(input2))
+			self.write_experiment_file("asm_setup2.h", gen_input_code(input2))
 
 
 	def run_experiment(self, conn_mode = None):
