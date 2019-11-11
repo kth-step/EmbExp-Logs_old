@@ -51,7 +51,8 @@ if not do_auto:
 else:
 	assert board_type == "rpi3"
 
-	progplat_hash = progplat.get_branch_commit_hash("master")
+	branchname = progplatform.get_default_branch()
+	progplat_hash = progplat.get_branch_commit_hash(branchname)
 
 	if auto_mode == "fix":
 		exp_iter = exp_finder.ExpsIter(exp_class, auto_mode, progplat_hash, board_type)

@@ -20,6 +20,9 @@ def get_embexp_ProgPlatform(embexp_arg):
 	assert os.path.isdir(progplat_path)
 	return ProgPlatform(progplat_path)
 
+def get_default_branch():
+	return "scamv"
+
 class ProgPlatform:
 	def __init__(self, progplat_path):
 		self.progplat_path = embexp_path = os.path.abspath(progplat_path)

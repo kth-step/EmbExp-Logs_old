@@ -32,7 +32,7 @@ def run_experiment(exp_id, progplat = None, board_type = None, branchname = None
 	# change to corresponding branch
 	# ======================================
 	if branchname == None:
-		branchname = "master"
+		branchname = progplatform.get_default_branch()
 	progplat.change_branch(branchname)
 
 	try:

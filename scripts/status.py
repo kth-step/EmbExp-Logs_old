@@ -40,7 +40,7 @@ if arch_id == None:
 # obtain run_id
 run_id = args.run_id
 if run_id == None:
-	branchname = "master"
+	branchname = progplatform.get_default_branch()
 	board_type = "rpi3"
 	assert arch_id == "arm8"
 	progplat_hash = progplatform.get_embexp_ProgPlatform(None).get_branch_commit_hash(branchname)
