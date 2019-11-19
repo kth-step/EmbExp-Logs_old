@@ -39,7 +39,11 @@ class ProgPlatform:
 		return progplat_hash.decode("ascii").strip()
 
 	def get_branch_commit_hash(self, branchname):
-		progplat_hash = self._call_git_cmd_get_output(["rev-parse", branchname], "coudln't get commit hash")
+		try:
+			progplat_hash = self._call_git_cmd_get_output(["rev-parse", branchname], "coudln't get commit hash")
+		except:
+			# TODO: fix better handling of this case
+			progplat_hash = self._call_git_cmd_get_output(["rev-parse", f"origin/{branchname}"], "coudln't get commit hash")
 		return progplat_hash.decode("ascii").strip()
 
 	def get_configured_run_id(self):
