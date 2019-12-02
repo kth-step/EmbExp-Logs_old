@@ -15,8 +15,12 @@ def _autodetect_embexp_path(embexp_arg = None):
 	return embexp_path
 
 def get_embexp_ProgPlatform(embexp_arg):
-	embexp_path = _autodetect_embexp_path(embexp_arg)
-	progplat_path = os.path.join(embexp_path, "EmbExp-ProgPlatform")
+	const_envnameprogplat = "EMBEXP_PROGPLATFORM"
+	if const_envnameprogplat in os.environ:
+		progplat_path = os.environ[const_envnameprogplat]
+	else:
+		embexp_path = _autodetect_embexp_path(embexp_arg)
+		progplat_path = os.path.join(embexp_path, "EmbExp-ProgPlatform")
 	assert os.path.isdir(progplat_path)
 	return ProgPlatform(progplat_path)
 
