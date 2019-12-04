@@ -1,0 +1,5 @@
+	ldr x7, [x17]
+	ldr x4, [x26]
+	ldr x1, [x7, #16]
+	ldr x20, [x24, #16]
+	ldr x22, [x13]
