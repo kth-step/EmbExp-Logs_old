@@ -1,0 +1,12 @@
+Starting log for: 3580dc2a690afd4cac1c06d98a4197998b087cb1
+Scam-V set to the following test params:
+Program generator    : qc
+Prog gen params      : SOME "previct5"
+Observation model    : cache_tag_index
+HW observation model : cache_multiw
+Enumerate            : false
+
+
+
+======================================
+Experiment generation duration: 70877.505s
