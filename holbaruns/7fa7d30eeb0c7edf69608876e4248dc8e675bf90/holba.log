@@ -1,0 +1,12 @@
+Starting log for: 7fa7d30eeb0c7edf69608876e4248dc8e675bf90
+Scam-V set to the following test params:
+Program generator    : prefetch_strides
+Prog gen params      : NONE
+Observation model    : cache_tag_index_part
+HW observation model : cache_multiw_subset
+Enumerate            : true
+
+
+
+======================================
+Experiment generation duration: 42721.934s
