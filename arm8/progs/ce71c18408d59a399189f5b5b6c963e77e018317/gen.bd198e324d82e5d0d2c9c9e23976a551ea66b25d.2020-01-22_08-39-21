@@ -1,0 +1,5 @@
+prog_gen_rand::wout_ldzr_cbnz
+Skipping program due to exception in pipleline:
+HOL_ERR {message = "the symbolic environment doesn't contain all variables of the program", origin_function = "init_env", origin_structure = "HolKernel"}
+***
+
