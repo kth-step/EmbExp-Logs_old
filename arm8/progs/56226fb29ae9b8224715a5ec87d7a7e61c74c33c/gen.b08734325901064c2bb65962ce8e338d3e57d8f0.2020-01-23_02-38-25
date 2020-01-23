@@ -1,0 +1,5 @@
+prog_gen_rand::
+Skipping program due to exception in pipleline:
+HOL_ERR {message = "no observations", origin_function = "start_interactive", origin_structure = "HolKernel"}
+***
+

@@ -1,0 +1,12 @@
+Starting log for: b08734325901064c2bb65962ce8e338d3e57d8f0
+Scam-V set to the following test params:
+Program generator    : gen_rand
+Prog gen params      : NONE
+Observation model    : cache_tag_index
+HW observation model : cache_multiw
+Enumerate            : false
+
+
+
+======================================
+Experiment generation duration: 29191.041s
