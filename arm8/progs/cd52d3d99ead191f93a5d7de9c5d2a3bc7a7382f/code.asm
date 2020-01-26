@@ -1,0 +1,5 @@
+	ldursw x29, [x10, #20]
+	ldrb w25, [x9, x29, sxtx #0]
+	ldrb w23, [x7, x29, sxtx #0]
+	strh w30, [x4, w25, uxtw #1]
+	ldp w17, w30, [x9, #0x9C]
