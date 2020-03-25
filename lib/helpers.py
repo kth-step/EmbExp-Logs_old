@@ -3,6 +3,7 @@ import sys
 import os
 import logging
 import subprocess
+import random
 
 # helpers
 # ======================================
@@ -59,8 +60,13 @@ def writefile_or_compare(forcenew, filename, content, errmsg):
 	if not comparefile(filename, content, True):
 		raise Exception(f"file {filename} has unexpected content: {errmsg}")
 
-def gen_input_code(regmap):
-	asm = ""
+def reg_gen(regs):
+	regx = "x"+str(random.randint(0,31))
+	regw = "w"+str(random.randint(0,31))
+
+	return [regw, regx if regx not in regs else reg_gen(regs)]
+		
+def gen_input_code_reg(regmap, asm):
 	use_constmov = True
 	for reg in regmap.keys():
 		val = regmap[reg]
@@ -75,6 +81,39 @@ def gen_input_code(regmap):
 		asm_val = asm_val_lm if use_constmov else asm_val_l1
 		asm += f"\t// {reg} = 0x{val_str}\n{asm_val}\n"
 	return asm
+	
+def gen_strb_src_reg(regmap):
+	asm = ""
+	(reg,val) = [(k, v) for k, v in regmap.items()][0]
+	val_str = val.to_bytes(8, byteorder='big').hex()
+	asm_val = ""
+	for i in range(2):
+		hexstr = val_str[(4-i-1)*2*2:(4-i)*2*2]
+		asm_val += f"\tmovk {reg}, #0x{hexstr}, lsl #{16 * i}\n"
+	asm += f"\t// {reg} = 0x{val_str}\n{asm_val}\n"
+	return asm
+
+def gen_input_code_mem(memmap, regs, asm):
+	for itm in memmap.keys():
+		asm += gen_strb_src_reg({regs[0]:memmap[itm]})
+		asm += gen_input_code_reg({regs[1]:itm}, asm)
+		asm += f"\tstrb {regs[0]}, [{regs[1]}]\n"
+	return asm
+	
+def gen_input_code(regmap):
+	asm = ""	
+	memmap={}
+
+	for k in regmap['mem'].keys():
+		memmap[int(k)] = regmap['mem'][k]
+	del regmap['mem']	
+	
+	asm = gen_input_code_reg(regmap, asm)
+	regs = reg_gen(regmap.keys())
+	asm = gen_input_code_mem(memmap, regs, asm)
+	return asm
+
+
 
 def gen_readable(regmap):
 	s = ""
