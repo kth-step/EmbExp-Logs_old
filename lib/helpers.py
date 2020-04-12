@@ -87,7 +87,7 @@ def gen_strb_src_reg(regmap):
 	(reg,val) = [(k, v) for k, v in regmap.items()][0]
 	val_str = val.to_bytes(8, byteorder='big').hex()
 	asm_val = ""
-	for i in range(2):
+	for i in range(1):
 		hexstr = val_str[(4-i-1)*2*2:(4-i)*2*2]
 		asm_val += f"\tmovk {reg}, #0x{hexstr}, lsl #{16 * i}\n"
 	asm += f"\t// {reg} = 0x{val_str}\n{asm_val}\n"
@@ -112,8 +112,6 @@ def gen_input_code(regmap):
 	regs = reg_gen(regmap.keys())
 	asm = gen_input_code_mem(memmap, regs, asm)
 	return asm
-
-
 
 def gen_readable(regmap):
 	s = ""
