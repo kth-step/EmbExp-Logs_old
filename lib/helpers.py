@@ -96,7 +96,7 @@ def gen_strb_src_reg(regmap):
 def gen_input_code_mem(memmap, regs, asm):
 	for itm in memmap.keys():
 		asm += gen_strb_src_reg({regs[0]:memmap[itm]})
-		asm += gen_input_code_reg({regs[1]:itm}, asm)
+		asm += gen_input_code_reg({regs[1]:itm}, "")
 		asm += f"\tstrb {regs[0]}, [{regs[1]}]\n"
 	return asm
 	
@@ -106,11 +106,11 @@ def gen_input_code(regmap):
 
 	for k in regmap['mem'].keys():
 		memmap[int(k)] = regmap['mem'][k]
-	del regmap['mem']	
-	
+	del regmap['mem']
+
 	asm = gen_input_code_reg(regmap, asm)
 	regs = reg_gen(regmap.keys())
-	asm = gen_input_code_mem(memmap, regs, asm)
+	asm += gen_input_code_mem(memmap, regs, "")
 	return asm
 
 def gen_readable(regmap):
