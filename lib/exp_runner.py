@@ -13,13 +13,20 @@ def run_experiment(exp_id, progplat = None, board_type = None, branchname = None
 
 	exp = experiment.Experiment(exp_id)
 
-	# can only handle arm8 at the moment and run on rpi3
+	# TODO: change to take rpi3 or rpi4 as a parameter
 	assert exp.get_exp_arch() == "arm8"
 
-	if board_type == None:
-		if exp.get_exp_arch() == "arm8":
+	if exp.get_exp_arch() == "arm8":
+		if board_type == None:
+			board_type = "rpi4"
+			assert board_type == "rpi4"
+		elif board_type == 'rpi3':
 			board_type = "rpi3"
-	assert board_type == "rpi3"
+			assert board_type == "rpi3"
+		else: 
+			board_type = "rpi4"
+			assert board_type == "rpi4"
+
 
 	# can only handle exps1 and exps2
 	exp_type = exp.get_exp_type()
