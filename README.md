@@ -80,7 +80,7 @@ Executing `git status` now shows an overwhelming number of missing files.
 
 Now we create fresh experiment outputs with the command `./scripts/run_batch.py -ec arm8/exps2/cache_multiw_numinset`.
 This reruns all experiments of the experiment class `arm8/exps2/cache_multiw_numinset`, which is the experiment class for the current experiment set.
-For this experiment set, this process takes about 36 hours.
+For this experiment set, this process takes about 45 hours.
 While it is running, experiment ids are printed before they are executed.
 If the result is not a complete execution with equal cache states for both inputs, there will be additional outputs indicating problems or a complete execution with unequal or inconclusive result.
 
