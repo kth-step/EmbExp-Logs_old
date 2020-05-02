@@ -115,8 +115,8 @@ class ProgPlatform:
 		logging.debug(f"reading input files")
 		code_asm = exp.get_code()
 		input1   = exp.get_input_file("input1.json")
-		if exp_type == "exps2":
-			input2   = exp.get_input_file("input2.json")
+		#if exp_type == "exps2":
+		input2   = exp.get_input_file("input2.json")
 
 		config_text = ""
 		config_text += f"PROGPLAT_ARCH         ={exp.get_exp_arch()}\n"
@@ -133,8 +133,8 @@ class ProgPlatform:
 
 		self.write_experiment_file("asm.h", code_asm)
 		self.write_experiment_file("asm_setup1.h", gen_input_code(input1))
-		if exp_type == "exps2":
-			self.write_experiment_file("asm_setup2.h", gen_input_code(input2))
+		#if exp_type == "exps2":
+		self.write_experiment_file("asm_setup2.h", gen_input_code(input2))
 
 
 	def run_experiment(self, conn_mode = None):
