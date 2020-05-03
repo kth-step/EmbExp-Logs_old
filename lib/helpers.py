@@ -180,7 +180,7 @@ def parse_uart_single_cache_experiment(lines):
 
 def parse_uart_single_cache_experiment_simp(lines):
 	sets = []
-	for s in range(0,128):
+	for s in range(0,256):
 		sets.append({"set": s, "lines": []})
 	for line in lines:
 		parts = line.split("::")
