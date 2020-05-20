@@ -2,6 +2,9 @@
 import logging
 import os
 import json
+import re
+import shutil
+
 
 from helpers import *
 
@@ -10,7 +13,9 @@ def get_run_id(progplat_hash, board_type):
 def get_run_dir(run_id):
 	return f"run.{run_id}"
 
-class Experiment:
+class Experiment(object):
+	tries = 0
+
 	def __init__(self, exp_id):
 		assert len(exp_id.split('/')) == 4
 		self.exp_id = exp_id
@@ -67,6 +72,10 @@ class Experiment:
 		with open(self.get_path(filename, True), "r") as f:
 			return json.load(f)
 
+	def get_result_file(self, filename):
+		with open(self.get_path(filename, True), "r") as f:
+			return json.load(f)
+
 	def get_exp_gens(self):
 		prefix = "gen."
 		gens = []
@@ -112,6 +121,21 @@ class Experiment:
 		# TODO: these filenames are specific to a certain type of experiment
 		for filename in ["output_uart.log", "result.json"]:
 			is_complete = is_complete and os.path.isfile(self.get_path(f"{get_run_dir(run_id)}/{filename}"))
+		# Try to run 3 times more experiments which caused exception
+		if is_complete:
+			exception   = re.compile('exception')
+			run_id      = self.get_run_ids()[0]
+			run_res_dir = self.get_path(f"{get_run_dir(run_id)}")
+			content     = self.get_result_file(f"{get_run_dir(run_id)}/result.json")
+			if (bool(exception.search(str(content)))):
+				Experiment.tries += 1
+				try:
+					shutil.rmtree(run_res_dir)
+				except OSError as e:
+					print("Error: %s : %s" % (run_res_dir, e.strerror))
+				print()
+			is_complete = is_complete and (not (bool(exception.search(str(content))) and (Experiment.tries < 3))) 	
+		
 		return not is_complete
 
 	def write_results(self, run_id, outputs, force_results = False):

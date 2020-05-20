@@ -94,11 +94,27 @@ def gen_strb_src_reg(regmap):
 	return asm
 
 def gen_input_code_mem(memmap, regs, asm):
-	for itm in memmap.keys():
-		asm += gen_strb_src_reg({regs[0]:memmap[itm]})
-		asm += gen_input_code_reg({regs[1]:itm}, "")
-		asm += f"\tstrb {regs[0]}, [{regs[1]}]\n"
+	for itm in memmap:
+		asm += gen_strb_src_reg({regs[0]:itm[2]})
+		asm += gen_input_code_reg({regs[1]:itm[0]}, "")
+		asm += f"\tstrb {regs[0]}, [{regs[1]}, {str(itm[1])}]\n"
 	return asm
+
+def mem_parse(memmap):
+	flatten  = lambda l: [item for sublist in l for item in sublist]
+	partition= lambda addresses, patterns: [[a[0]] for pat in patterns for a in addresses if a[1] == pat]
+           
+	adr_mask = 4294967288
+	off_mask = 7
+	patterns = set(map(lambda x : bin(x & adr_mask), memmap.keys()))
+	addr_pat = list(zip (memmap.keys(), list(map(lambda x : bin(x & adr_mask), memmap.keys()))))
+	partitioned_based_on_pattern = partition(addr_pat, patterns)
+	# (address, offset, value)
+	address_and_offset_value = list(map(lambda x :
+                                       (list(map (lambda y :
+                                            (y & adr_mask, y & off_mask, memmap[y]), x))),
+                                       partitioned_based_on_pattern))
+	return (flatten (address_and_offset_value))
 	
 def gen_input_code(regmap):
 	asm = ""	
@@ -110,7 +126,8 @@ def gen_input_code(regmap):
 
 	asm = gen_input_code_reg(regmap, asm)
 	regs = reg_gen(regmap.keys())
-	asm += gen_input_code_mem(memmap, regs, "")
+	mem_parsed = mem_parse(memmap)
+	asm += gen_input_code_mem(mem_parsed, regs, "")
 	return asm
 
 def gen_readable(regmap):
