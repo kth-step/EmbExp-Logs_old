@@ -99,16 +99,18 @@ def gen_input_code_mem(memmap, regs, asm):
 		asm += gen_input_code_reg({regs[1]:itm[0]}, "")
 		asm += f"\tstrb {regs[0]}, [{regs[1]}, {str(itm[1])}]\n"
 	return asm
-
+	
 def mem_parse(memmap):
 	flatten  = lambda l: [item for sublist in l for item in sublist]
-	partition= lambda addresses, patterns: [[a[0]] for pat in patterns for a in addresses if a[1] == pat]
-           
+	def partition(addresses, patterns):
+		for pat in patterns:
+			yield [a[0] for a in addresses if a[1] == pat]	
+       
 	adr_mask = 4294967288
 	off_mask = 7
 	patterns = set(map(lambda x : bin(x & adr_mask), memmap.keys()))
 	addr_pat = list(zip (memmap.keys(), list(map(lambda x : bin(x & adr_mask), memmap.keys()))))
-	partitioned_based_on_pattern = partition(addr_pat, patterns)
+	partitioned_based_on_pattern = list(partition(addr_pat, patterns))
 	# (address, offset, value)
 	address_and_offset_value = list(map(lambda x :
                                        (list(map (lambda y :

@@ -133,7 +133,6 @@ class Experiment(object):
 					shutil.rmtree(run_res_dir)
 				except OSError as e:
 					print("Error: %s : %s" % (run_res_dir, e.strerror))
-				print()
 			is_complete = is_complete and (not (bool(exception.search(str(content))) and (Experiment.tries < 3))) 	
 		
 		return not is_complete
