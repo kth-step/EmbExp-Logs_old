@@ -56,8 +56,8 @@ with open(exp.get_path(f"input{input_index}.json", True), "rb") as f:
 	
 # reading the input for mistraining the branch predictor
 input_index_dual = (input_index % 2) + 1
-with open(exp.get_path(f"input{input_index_dual}.json", True), "rb") as f:
-	files.append(("input2.json", f.read()))
+with open(exp.get_path(f"train.json", True), "rb") as f:
+	files.append(("train.json", f.read()))
 	
 exp_new = experiment.Experiment.create(exp_new_id, files)
 

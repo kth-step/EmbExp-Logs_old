@@ -29,7 +29,7 @@ def call_cmd(cmdl, error_msg, show_output = True, show_error = True):
 	error_file = None
 	if not show_error:
 		error_file = subprocess.DEVNULL
-	res = subprocess.call(cmdl, stdout=output_file, stderr=error_file)
+	res = subprocess.call(cmdl, stdout=output_file, stderr=error_file, shell=False)
 	if res != 0:
 		raise Exception(f"command {cmdl} not successful: {res} : {error_msg}")
 
@@ -64,7 +64,10 @@ def reg_gen(regs):
 	regx = "x"+str(random.randint(0,31))
 	regw = "w"+str(random.randint(0,31))
 
-	return [regw, regx if regx not in regs else reg_gen(regs)]
+	if regx not in regs:
+		return [regw, regx]
+	else:
+		return reg_gen(regs)	
 		
 def gen_input_code_reg(regmap, asm):
 	use_constmov = True
