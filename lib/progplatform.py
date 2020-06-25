@@ -24,8 +24,9 @@ def get_embexp_ProgPlatform(embexp_arg):
 	assert os.path.isdir(progplat_path)
 	return ProgPlatform(progplat_path)
 
-def get_default_branch():
-	return "scamv"
+def get_default_branch(board_type):
+	assert board_type != None
+	return "scamv_" + board_type
 
 class ProgPlatform:
 	def __init__(self, progplat_path):
@@ -114,6 +115,7 @@ class ProgPlatform:
 
 		logging.debug(f"reading input files")
 		code_asm = exp.get_code()
+		train    = exp.get_input_file("train.json")
 		input1   = exp.get_input_file("input1.json")
 		if exp_type == "exps2":
 			input2   = exp.get_input_file("input2.json")
@@ -124,14 +126,15 @@ class ProgPlatform:
 		config_text += f"PROGPLAT_PARAMS       ={exp.get_exp_params_id()}\n"
 		config_text += f"PROGPLAT_BOARD        ={board_type}\n"
 		if exp_type == "exps2":
-			config_text += f"PROGPLAT_RUN_TIMEOUT  =6\n"
+			config_text += f"PROGPLAT_RUN_TIMEOUT  =60\n"
 		elif exp_type == "exps1":
-			config_text += f"PROGPLAT_RUN_TIMEOUT  =20\n"
+			config_text += f"PROGPLAT_RUN_TIMEOUT  =80\n"
 		config_text += f"__PROGPLAT_MUL_RUNS__ ={num_mul_runs}\n"
 		with open(os.path.join(self.progplat_path, f"Makefile.config"), "w+") as f:
 			f.write(config_text)
 
 		self.write_experiment_file("asm.h", code_asm)
+		self.write_experiment_file("asm_train.h", gen_input_code(train))
 		self.write_experiment_file("asm_setup1.h", gen_input_code(input1))
 		if exp_type == "exps2":
 			self.write_experiment_file("asm_setup2.h", gen_input_code(input2))

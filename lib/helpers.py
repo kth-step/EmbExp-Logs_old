@@ -3,6 +3,7 @@ import sys
 import os
 import logging
 import subprocess
+import random
 
 # helpers
 # ======================================
@@ -59,8 +60,16 @@ def writefile_or_compare(forcenew, filename, content, errmsg):
 	if not comparefile(filename, content, True):
 		raise Exception(f"file {filename} has unexpected content: {errmsg}")
 
-def gen_input_code(regmap):
-	asm = ""
+def reg_gen(regs):
+	regx = "x"+str(random.randint(0,31))
+	regw = "w"+str(random.randint(0,31))
+
+	if regx not in regs:
+		return [regw, regx]
+	else:
+		return reg_gen(regs)	
+		
+def gen_input_code_reg(regmap, asm):
 	use_constmov = True
 	for reg in regmap.keys():
 		val = regmap[reg]
@@ -74,6 +83,56 @@ def gen_input_code(regmap):
 			asm_val_lm += f"\tmovk {reg}, #0x{hexstr}, lsl #{16 * i}\n"
 		asm_val = asm_val_lm if use_constmov else asm_val_l1
 		asm += f"\t// {reg} = 0x{val_str}\n{asm_val}\n"
+	return asm
+	
+def gen_strb_src_reg(regmap):
+	asm = ""
+	(reg,val) = [(k, v) for k, v in regmap.items()][0]
+	val_str = val.to_bytes(8, byteorder='big').hex()
+	asm_val = ""
+	for i in range(1):
+		hexstr = val_str[(4-i-1)*2*2:(4-i)*2*2]
+		asm_val += f"\tmovk {reg}, #0x{hexstr}, lsl #{16 * i}\n"
+	asm += f"\t// {reg} = 0x{val_str}\n{asm_val}\n"
+	return asm
+
+def gen_input_code_mem(memmap, regs, asm):
+	for itm in memmap:
+		asm += gen_strb_src_reg({regs[0]:itm[2]})
+		asm += gen_input_code_reg({regs[1]:itm[0]}, "")
+		asm += f"\tstrb {regs[0]}, [{regs[1]}, {str(itm[1])}]\n"
+	return asm
+	
+def mem_parse(memmap):
+	flatten  = lambda l: [item for sublist in l for item in sublist]
+	def partition(addresses, patterns):
+		for pat in patterns:
+			yield [a[0] for a in addresses if a[1] == pat]	
+       
+	adr_mask = 4294967288
+	off_mask = 7
+	patterns = set(map(lambda x : bin(x & adr_mask), memmap.keys()))
+	addr_pat = list(zip (memmap.keys(), list(map(lambda x : bin(x & adr_mask), memmap.keys()))))
+	partitioned_based_on_pattern = list(partition(addr_pat, patterns))
+	# (address, offset, value)
+	address_and_offset_value = list(map(lambda x :
+                                       (list(map (lambda y :
+                                            (y & adr_mask, y & off_mask, memmap[y]), x))),
+                                       partitioned_based_on_pattern))
+	return (flatten (address_and_offset_value))
+	
+def gen_input_code(regmap):
+	asm = ""	
+	memmap={}
+
+	for k in regmap['mem'].keys():
+		memmap[int(k)] = regmap['mem'][k]
+	del regmap['mem']
+
+	asm = gen_input_code_reg(regmap, asm)
+	regs = reg_gen(regmap.keys())
+	mem_parsed = mem_parse(memmap)
+	asm += gen_input_code_mem(mem_parsed, regs, "")
 	return asm
 
 def gen_readable(regmap):
@@ -143,7 +202,12 @@ def parse_uart_single_cache_experiment(lines):
 
 def parse_uart_single_cache_experiment_simp(lines):
 	sets = []
-	for s in range(0,128):
+	num_sets = 0
+	for line in lines:
+		parts = line.split("::")
+		s = int(parts[0].strip())
+		num_sets = max(num_sets, s+1)
+	for s in range(0,num_sets):
 		sets.append({"set": s, "lines": []})
 	for line in lines:
 		parts = line.split("::")

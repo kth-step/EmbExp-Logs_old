@@ -13,13 +13,16 @@ def run_experiment(exp_id, progplat = None, board_type = None, branchname = None
 
 	exp = experiment.Experiment(exp_id)
 
-	# can only handle arm8 at the moment and run on rpi3
-	assert exp.get_exp_arch() == "arm8"
-
+	# defaults
 	if board_type == None:
 		if exp.get_exp_arch() == "arm8":
 			board_type = "rpi3"
-	assert board_type == "rpi3"
+
+	# can only handle arm8 at the moment, ...
+	assert exp.get_exp_arch() == "arm8"
+	# ... and run on rpi3 or rpi4
+	assert board_type == "rpi3" or board_type == "rpi4"
+
 
 	# can only handle exps1 and exps2
 	exp_type = exp.get_exp_type()
@@ -32,7 +35,7 @@ def run_experiment(exp_id, progplat = None, board_type = None, branchname = None
 	# change to corresponding branch
 	# ======================================
 	if branchname == None:
-		branchname = progplatform.get_default_branch()
+		branchname = progplatform.get_default_branch(board_type)
 	progplat.change_branch(branchname)
 
 	try:
