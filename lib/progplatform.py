@@ -24,8 +24,9 @@ def get_embexp_ProgPlatform(embexp_arg):
 	assert os.path.isdir(progplat_path)
 	return ProgPlatform(progplat_path)
 
-def get_default_branch():
-	return "scamv-rpi4"
+def get_default_branch(board_type):
+	assert board_type != None
+	return "scamv_" + board_type
 
 class ProgPlatform:
 	def __init__(self, progplat_path):

@@ -29,7 +29,7 @@ def call_cmd(cmdl, error_msg, show_output = True, show_error = True):
 	error_file = None
 	if not show_error:
 		error_file = subprocess.DEVNULL
-	res = subprocess.call(cmdl, stdout=output_file, stderr=error_file, shell=False)
+	res = subprocess.call(cmdl, stdout=output_file, stderr=error_file)
 	if res != 0:
 		raise Exception(f"command {cmdl} not successful: {res} : {error_msg}")
 
@@ -202,7 +202,12 @@ def parse_uart_single_cache_experiment(lines):
 
 def parse_uart_single_cache_experiment_simp(lines):
 	sets = []
-	for s in range(0,256):
+	num_sets = 0
+	for line in lines:
+		parts = line.split("::")
+		s = int(parts[0].strip())
+		num_sets = max(num_sets, s+1)
+	for s in range(0,num_sets):
 		sets.append({"set": s, "lines": []})
 	for line in lines:
 		parts = line.split("::")
