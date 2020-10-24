@@ -10,11 +10,19 @@ from helpers import *
 class ExpsIterList:
 	def __init__(self, listval):
 		self.listval = listval
-		self._exp_size = len(listval)
-		self.iteration = 0
+		self.iter_round = 0
+		self.iter_idx   = 0
+		self.iter_size  = len(listval)
+
+	def get_iterinfo(self):
+		return (self.iter_round, self.iter_idx, self.iter_size)
 
 	def __iter__(self):
-		return self.listval.__iter__()
+		return self
+
+	def __next__(self):
+		self.iter_idx += 1
+		return self.listval.__next__()
 
 def get_exps_from_stdin():
 	exp_list = []
@@ -76,6 +84,12 @@ class ExpsIter:
 		if self.poll_max_rounds < 1:
 			self.poll_max_rounds = 1
 		self._exp_list_iter = iter([])
+		self.iter_round = 0
+		self.iter_idx   = 0
+		self.iter_size  = 0
+
+	def get_iterinfo(self):
+		return (self.iter_round, self.iter_idx, self.iter_size)
 
 	def update_exps_list(self):
 		for i in range(self.poll_max_rounds):
@@ -86,12 +100,16 @@ class ExpsIter:
 			logging.warning(f"generated {len(exp_list)}")
 			if len(exp_list) > 0:
 				break
+		self.iter_round += 1
+		self.iter_idx   = 0
+		self.iter_size  = len(exp_list)
 		self._exp_list_iter = iter(exp_list)
 
 	def __iter__(self):
 		return self
 
 	def __next__(self):
+		self.iter_idx += 1
 		try:
 			next_exp = self._exp_list_iter.__next__()
 		except StopIteration:
