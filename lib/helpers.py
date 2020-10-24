@@ -60,7 +60,7 @@ def writefile_or_compare(forcenew, filename, content, errmsg):
 	if not comparefile(filename, content, True):
 		raise Exception(f"file {filename} has unexpected content: {errmsg}")
 
-def gen_input_code_reg(regmap):
+def gen_input_code_reg(regmap, printcomments=True):
 	asm = ""
 	use_constmov = True
 	for reg in regmap.keys():
@@ -74,17 +74,23 @@ def gen_input_code_reg(regmap):
 			hexstr = val_str[(4-i-1)*2*2:(4-i)*2*2]
 			asm_val_lm += f"\tmovk {reg}, #0x{hexstr}, lsl #{16 * i}\n"
 		asm_val = asm_val_lm if use_constmov else asm_val_l1
-		asm += f"\t// {reg} = 0x{val_str}\n{asm_val}\n"
+		asm_comment = ""
+		if printcomments:
+			asm_comment = f"\t// {reg} = 0x{val_str}"
+		asm += f"{asm_comment}\n{asm_val}\n"
 	return asm
 	
-def gen_strb_src_reg(reg, val):
+def gen_strb_src_reg(reg, val, printcomments=True):
 	asm = ""
 	val_str = val.to_bytes(8, byteorder='big').hex()
 	asm_val = ""
 	for i in range(1):
 		hexstr = val_str[(4-i-1)*2*2:(4-i)*2*2]
 		asm_val += f"\tmovk {reg}, #0x{hexstr}, lsl #{16 * i}\n"
-	asm += f"\t// {reg} = 0x{val_str}\n{asm_val}\n"
+	asm_comment = ""
+	if printcomments:
+		asm_comment = f"\t// {reg} = 0x{val_str}"
+	asm += f"{asm_comment}\n{asm_val}\n"
 	return asm
 
 # helper for mem_parse
@@ -142,8 +148,8 @@ def gen_input_code_mem(memmap):
 			adr_str = (baseaddr).to_bytes(8, byteorder='big').hex()
 			asm += f"\t// MEM[0x{adr_str}] =LONG= 0x{bs.hex()}\n"
 
-			asm += gen_input_code_reg({"x1":(int.from_bytes(bs, byteorder='big'))})
-			asm += gen_input_code_reg({"x0":baseaddr})
+			asm += gen_input_code_reg({"x1":(int.from_bytes(bs, byteorder='big'))}, False)
+			asm += gen_input_code_reg({"x0":baseaddr}, False)
 			asm += f"\tstr x1, [x0]\n\n"
 		else:
 			# else, we need to export them individually
@@ -154,8 +160,8 @@ def gen_input_code_mem(memmap):
 				val_str = value.to_bytes(1, byteorder='big').hex()
 				asm += f"\t// MEM[0x{adr_str}] =BYTE= 0x{val_str}\n"
 
-				asm += gen_strb_src_reg("w1", value)
-				asm += gen_input_code_reg({"x0":baseaddr})
+				asm += gen_strb_src_reg("w1", value, False)
+				asm += gen_input_code_reg({"x0":baseaddr}, False)
 				asm += f"\tstrb w1, [x0, {str(offset)}]\n\n"
 	return asm
 	
