@@ -257,8 +257,6 @@ def parse_uart_single_cache_experiment(lines, board_type):
 		return parse_uart_single_cache_experiment_simp(lines, board_type)
 
 def parse_uart_single_cache_experiment_simp(lines, board_type):
-	sets = []
-
 	# find out the number of sets
 	num_sets = None
 	if board_type == "rpi3":
@@ -267,6 +265,8 @@ def parse_uart_single_cache_experiment_simp(lines, board_type):
 		raise Exception("unknown board type")
 	assert num_sets != None
 
+	# initialize and fill the data structure
+	sets = []
 	for s in range(0,num_sets):
 		sets.append({"set": s, "lines": []})
 	for line in lines:
