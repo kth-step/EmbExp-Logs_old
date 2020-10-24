@@ -52,8 +52,7 @@ if not do_auto:
 else:
 	assert board_type == "rpi3" or board_type == "rpi4"
 
-	branchname = progplatform.get_default_branch(board_type)
-	progplat_hash = progplat.get_branch_commit_hash(branchname)
+	progplat_hash = progplat.get_branch_commit_hash(progplatform.get_default_branch(board_type))
 
 	if auto_mode == "fix":
 		exp_iter = exp_finder.ExpsIter(exp_class, auto_mode, progplat_hash, board_type)
@@ -68,7 +67,7 @@ someSuccessful = False
 for exp_id in exp_iter:
 	print(f"===>>> {exp_id}")
 	try:
-		result_val = exp_runner.run_experiment(exp_id, progplat, board_type, branchname, conn_mode=args.conn_mode, force_results=args.force_results)
+		result_val = exp_runner.run_experiment(exp_id, progplat, board_type, conn_mode=args.conn_mode, force_results=args.force_results)
 		someSuccessful = True
 		if result_val != True:
 			print(f"         - Interesting result: {result_val}")

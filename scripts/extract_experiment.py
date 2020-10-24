@@ -52,13 +52,9 @@ with open(exp.get_path("code.hash", True), "rb") as f:
 	files.append(("code.hash", f.read()))
 with open(exp.get_path(f"input{input_index}.json", True), "rb") as f:
 	files.append(("input1.json", f.read()))
-
-# TODO: remove this hack everywhere to have a new json file for this extra input information
-# reading the input for mistraining the branch predictor
-input_index_dual = (input_index % 2) + 1
 with open(exp.get_path(f"train.json", True), "rb") as f:
 	files.append(("train.json", f.read()))
-	
+
 exp_new = experiment.Experiment.create(exp_new_id, files)
 
 if not remove_after:

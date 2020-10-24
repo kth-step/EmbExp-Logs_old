@@ -50,8 +50,8 @@ run_id = args.run_id
 if run_id == None:
 	assert arch_id == "arm8"
 	assert board_type == "rpi3" or board_type == "rpi4"
-	branchname = progplatform.get_default_branch(board_type)
-	progplat_hash = progplatform.get_embexp_ProgPlatform(None).get_branch_commit_hash(branchname)
+	progplat_hash = progplatform.get_embexp_ProgPlatform(None).get_branch_commit_hash(
+		progplatform.get_default_branch(board_type))
 	run_id = experiment.get_run_id(progplat_hash, board_type)
 
 print(f"run_id = {run_id}")
