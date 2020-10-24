@@ -260,15 +260,12 @@ def parse_uart_single_cache_experiment_simp(lines, board_type):
 	sets = []
 
 	# find out the number of sets
-	num_sets = 0
-	for line in lines:
-		parts = line.split("::")
-		s = int(parts[0].strip())
-		num_sets = max(num_sets, s+1)
+	num_sets = None
 	if board_type == "rpi3":
-		assert num_sets == 128
+		num_sets = 128
 	else:
 		raise Exception("unknown board type")
+	assert num_sets != None
 
 	for s in range(0,num_sets):
 		sets.append({"set": s, "lines": []})
