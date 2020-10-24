@@ -54,7 +54,7 @@ def run_experiment(exp_id, progplat = None, board_type = None, branchname = None
 		if exp_type == "exps2":
 			result_val = eval_uart_pair_cache_experiment(uartlogdata_lines)
 		elif exp_type == "exps1":
-			result_val = parse_uart_single_cache_experiment(uartlogdata_lines)
+			result_val = parse_uart_single_cache_experiment(uartlogdata_lines, board_type)
 			# if the result is no board exception
 			if not isinstance(result_val, str):
 				# filter sets where at least one line is valid

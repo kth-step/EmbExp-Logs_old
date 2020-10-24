@@ -222,7 +222,7 @@ def check_uart_experiment_base(lines):
 
 	return lines[1:-1]
 
-def parse_uart_single_cache_experiment(lines):
+def parse_uart_single_cache_experiment(lines, board_type):
 	lines = check_uart_experiment_base(lines)
 	# has it been an exception on the board?
 	if isinstance(lines, str):
@@ -249,15 +249,22 @@ def parse_uart_single_cache_experiment(lines):
 	if is_func_full:
 		return parse_uart_single_cache_experiment_full(lines)
 	else:
-		return parse_uart_single_cache_experiment_simp(lines)
+		return parse_uart_single_cache_experiment_simp(lines, board_type)
 
-def parse_uart_single_cache_experiment_simp(lines):
+def parse_uart_single_cache_experiment_simp(lines, board_type):
 	sets = []
+
+	# find out the number of sets
 	num_sets = 0
 	for line in lines:
 		parts = line.split("::")
 		s = int(parts[0].strip())
 		num_sets = max(num_sets, s+1)
+	if board_type == "rpi3":
+		assert num_sets == 128
+	else:
+		raise Exception("unknown board type")
+
 	for s in range(0,num_sets):
 		sets.append({"set": s, "lines": []})
 	for line in lines:
