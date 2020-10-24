@@ -60,7 +60,8 @@ def writefile_or_compare(forcenew, filename, content, errmsg):
 	if not comparefile(filename, content, True):
 		raise Exception(f"file {filename} has unexpected content: {errmsg}")
 
-def gen_input_code_reg(regmap, asm):
+def gen_input_code_reg(regmap):
+	asm = ""
 	use_constmov = True
 	for reg in regmap.keys():
 		val = regmap[reg]
@@ -76,9 +77,8 @@ def gen_input_code_reg(regmap, asm):
 		asm += f"\t// {reg} = 0x{val_str}\n{asm_val}\n"
 	return asm
 	
-def gen_strb_src_reg(regmap):
+def gen_strb_src_reg(reg, val):
 	asm = ""
-	(reg,val) = [(k, v) for k, v in regmap.items()][0]
 	val_str = val.to_bytes(8, byteorder='big').hex()
 	asm_val = ""
 	for i in range(1):
@@ -87,9 +87,33 @@ def gen_strb_src_reg(regmap):
 	asm += f"\t// {reg} = 0x{val_str}\n{asm_val}\n"
 	return asm
 
-def gen_input_code_mem(memmap, regs):
-	if regs != ["w1", "x0"]:
-		raise Exception("need those registers, they are hardcoded!")
+# helper for mem_parse
+def uncacheable(cacheable_addr):
+    assert 0x80000000 < cacheable_addr < 2*(0x80000000)
+    return cacheable_addr - 0x80000000
+
+# helper for gen_input_code_mem
+def mem_parse(memmap):
+	flatten  = lambda l: [item for sublist in l for item in sublist]
+	def partition(addresses, patterns):
+		for pat in patterns:
+			yield [a[0] for a in addresses if a[1] == pat]	
+       
+	adr_mask = ((2**64) - 1) - 0x7
+	off_mask = 7
+	patterns = set(map(lambda x : bin(x & adr_mask), memmap.keys()))
+	addr_pat = list(zip (memmap.keys(), list(map(lambda x : bin(x & adr_mask), memmap.keys()))))
+	partitioned_based_on_pattern = list(partition(addr_pat, patterns))
+	# (address, offset, value)
+	address_and_offset_value = list(map(lambda x :
+                                       (list(map (lambda y :
+                                            (uncacheable(y & adr_mask), y & off_mask, memmap[y]), x))),
+                                       partitioned_based_on_pattern))
+	return (flatten (address_and_offset_value))
+
+def gen_input_code_mem(memmap):
+	mem_parsed = mem_parse(memmap)
+	memmap = mem_parsed
 	asm = ""
 
 	# group the base addresses
@@ -118,8 +142,8 @@ def gen_input_code_mem(memmap, regs):
 			adr_str = (baseaddr).to_bytes(8, byteorder='big').hex()
 			asm += f"\t// MEM[0x{adr_str}] =LONG= 0x{bs.hex()}\n"
 
-			asm += gen_input_code_reg({"x1":(int.from_bytes(bs, byteorder='big'))}, "")
-			asm += gen_input_code_reg({"x0":baseaddr}, "")
+			asm += gen_input_code_reg({"x1":(int.from_bytes(bs, byteorder='big'))})
+			asm += gen_input_code_reg({"x0":baseaddr})
 			asm += f"\tstr x1, [x0]\n\n"
 		else:
 			# else, we need to export them individually
@@ -130,58 +154,33 @@ def gen_input_code_mem(memmap, regs):
 				val_str = value.to_bytes(1, byteorder='big').hex()
 				asm += f"\t// MEM[0x{adr_str}] =BYTE= 0x{val_str}\n"
 
-				asm += gen_strb_src_reg({regs[0]:value})
-				asm += gen_input_code_reg({regs[1]:baseaddr}, "")
-				asm += f"\tstrb {regs[0]}, [{regs[1]}, {str(offset)}]\n\n"
+				asm += gen_strb_src_reg("w1", value)
+				asm += gen_input_code_reg({"x0":baseaddr})
+				asm += f"\tstrb w1, [x0, {str(offset)}]\n\n"
 	return asm
-
-def uncacheable(cacheable_addr):
-    assert 0x80000000 < cacheable_addr < 2*(0x80000000)
-    return cacheable_addr - 0x80000000
-
-def mem_parse(memmap):
-	flatten  = lambda l: [item for sublist in l for item in sublist]
-	def partition(addresses, patterns):
-		for pat in patterns:
-			yield [a[0] for a in addresses if a[1] == pat]	
-       
-	adr_mask = 4294967288
-	off_mask = 7
-	patterns = set(map(lambda x : bin(x & adr_mask), memmap.keys()))
-	addr_pat = list(zip (memmap.keys(), list(map(lambda x : bin(x & adr_mask), memmap.keys()))))
-	partitioned_based_on_pattern = list(partition(addr_pat, patterns))
-	# (address, offset, value)
-	address_and_offset_value = list(map(lambda x :
-                                       (list(map (lambda y :
-                                            (uncacheable(y & adr_mask), y & off_mask, memmap[y]), x))),
-                                       partitioned_based_on_pattern))
-	return (flatten (address_and_offset_value))
 	
-def gen_input_code(regmap):
-	asm = ""	
+def gen_input_code(statemap):
 	memmap={}
 
-	for k in regmap['mem'].keys():
-		memmap[int(k)] = regmap['mem'][k]
-	del regmap['mem']
+	for k in statemap['mem'].keys():
+		memmap[int(k)] = statemap['mem'][k]
+	del statemap['mem']
 
-	asm = gen_input_code_reg(regmap, asm)
+	asm1 = gen_input_code_reg(statemap)
+	regsetter = asm1
 
-	mem_parsed = mem_parse(memmap)
-	asm2 = gen_input_code_mem(mem_parsed, ["w1", "x0"])
-
+	asm2 = gen_input_code_mem(memmap) # uses registers x0 and x1
 	asm3 = "\n\t// reset the temporary registers to zero\n\tmov x0, #0\n" + "\tmov x1, #0\n"
 	memorysetter = asm2 + asm3
-	regsetter = asm
 
 	filecontents = f"{memorysetter}\n\n{regsetter}\n"
 
 	return filecontents
 
-def gen_readable(regmap):
+def gen_readable(statemap):
 	s = ""
-	for reg in regmap.keys():
-		val = regmap[reg]
+	for reg in statemap.keys():
+		val = statemap[reg]
 		if isinstance(val,dict):
 			print("MEM = {")
 			for addr_s in val:
