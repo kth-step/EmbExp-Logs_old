@@ -66,7 +66,7 @@ successful = True
 someSuccessful = False
 for exp_id in exp_iter:
 	(iter_round, iter_idx, iter_size) = exp_iter.get_iterinfo()
-	print(f"===>>> [r:{iter_round}, {round(iter_idx/iter_size * 100):.2f}% of {iter_size}] {exp_id}")
+	print(f"===>>> [r:{iter_round}, {(iter_idx/iter_size * 100):.2f}% of {iter_size}] {exp_id}")
 	try:
 		result_val = exp_runner.run_experiment(exp_id, progplat, board_type, conn_mode=args.conn_mode, force_results=args.force_results)
 		someSuccessful = True
