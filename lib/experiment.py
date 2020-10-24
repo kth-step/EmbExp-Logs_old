@@ -64,8 +64,22 @@ class Experiment:
 			return f.read()
 
 	def get_input_file(self, filename):
+		def value_parse_rec(d, convkey = False):
+			d_ = {}
+			for k in d:
+				v = d[k]
+				k = int(k, 16) if convkey else k
+				if isinstance(v, dict):
+					v_ = value_parse_rec(v, True)
+				else:
+					v_ = int(v, 16)
+				d_[k] = v_
+			return d_
+
 		with open(self.get_path(filename, True), "r") as f:
-			return json.load(f)
+			json_raw = json.load(f)
+			statemap = value_parse_rec(json_raw)
+			return statemap
 
 	def get_exp_gens(self):
 		prefix = "gen."
