@@ -126,7 +126,6 @@ class Experiment:
 		# TODO: these filenames are specific to a certain type of experiment
 		for filename in ["output_uart.log", "result.json"]:
 			is_complete = is_complete and os.path.isfile(self.get_path(f"{get_run_dir(run_id)}/{filename}"))
-
 		return not is_complete
 
 	def write_results(self, run_id, outputs, force_results = False):
