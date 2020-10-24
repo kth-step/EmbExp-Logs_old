@@ -2,8 +2,6 @@
 import logging
 import os
 import json
-import shutil
-
 
 from helpers import *
 
@@ -18,8 +16,6 @@ class Experiment:
 		self.exp_id = exp_id
 		self.exp_path = get_logs_path(exp_id)
 		assert os.path.isdir(self.exp_path)
-		self.tries = 0
-		self.last_run_id = None
 
 	def create(exp_id, files):
 		exp_path = get_logs_path(exp_id)
@@ -71,19 +67,6 @@ class Experiment:
 		with open(self.get_path(filename, True), "r") as f:
 			return json.load(f)
 
-	def get_result_file(self, run_id, filename):
-		filepath = f"{get_run_dir(run_id)}/{filename}"
-		with open(self.get_path(filepath, True), "r") as f:
-			return json.load(f)
-
-	def remove_run(self, run_id):
-		directory = get_run_dir(run_id)
-		if not os.path.isdir(directory):
-		#try:
-		shutil.rmtree(directory)
-		#except OSError as e:
-		#	print("Error: %s : %s" % (run_res_dir, e.strerror))
-
 	def get_exp_gens(self):
 		prefix = "gen."
 		gens = []
@@ -129,18 +112,7 @@ class Experiment:
 		# TODO: these filenames are specific to a certain type of experiment
 		for filename in ["output_uart.log", "result.json"]:
 			is_complete = is_complete and os.path.isfile(self.get_path(f"{get_run_dir(run_id)}/{filename}"))
-		# if experiment was complete and resulted in exception, try it up to 3 times
-		assert self.last_run_id != None
-		if is_complete:
-			run_id      = self.last_run_id
-			content     = self.get_result_file(run_id, "result.json")
-			is_exception = "exception" in str(content)
 
-			if is_exception:
-				self.tries += 1
-				self.remove_run(run_id)
-			is_complete = is_complete and (not (is_exception and (self.tries < 3))) 	
-		
 		return not is_complete
 
 	def write_results(self, run_id, outputs, force_results = False):
